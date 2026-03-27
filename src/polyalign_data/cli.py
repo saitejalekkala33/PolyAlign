@@ -4,7 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
-from polyalign_data.reference_builder import build_reference_summary
+from polyalign_data.dedup import dedup_formatted_corpus
+from polyalign_data.reference_builder import build_bucket_references, build_reference_summary
 from polyalign_data.registry import canonical_dataset_names, create_formatter
 
 
@@ -46,6 +47,27 @@ def _cmd_reference(args) -> None:
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
+def _cmd_reference_build(args) -> None:
+    summary = build_bucket_references(
+        args.records_path,
+        args.features_path,
+        args.output_root,
+        min_bucket_size=args.min_bucket_size,
+        overwrite=args.overwrite,
+    )
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
+def _cmd_dedup(args) -> None:
+    report = dedup_formatted_corpus(
+        args.input_root,
+        args.output_root,
+        args.report_path,
+        overwrite=args.overwrite,
+    )
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="PolyAlign dataset preprocessing CLI.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -64,6 +86,24 @@ def build_parser() -> argparse.ArgumentParser:
     reference_parser.add_argument("--input-root", required=True, help="Formatted dataset root directory.")
     reference_parser.add_argument("--output-path", required=True, help="Output JSON path for the summary.")
     reference_parser.set_defaults(func=_cmd_reference)
+
+    reference_build_parser = subparsers.add_parser(
+        "reference-build",
+        help="Build full bucket reference artifacts from merged current JSONL files and matching feature files.",
+    )
+    reference_build_parser.add_argument("--records-path", action="append", required=True, help="Path to a merged current-format JSONL file. Repeatable.")
+    reference_build_parser.add_argument("--features-path", action="append", required=True, help="Path to a matching feature JSONL file. Repeatable.")
+    reference_build_parser.add_argument("--output-root", required=True, help="Output directory for reference artifacts.")
+    reference_build_parser.add_argument("--min-bucket-size", type=int, default=20, help="Minimum examples required to keep a bucket.")
+    reference_build_parser.add_argument("--overwrite", action="store_true", help="Overwrite the output directory if it already exists.")
+    reference_build_parser.set_defaults(func=_cmd_reference_build)
+
+    dedup_parser = subparsers.add_parser("dedup", help="Deduplicate formatted datasets with evaluation-safe priority.")
+    dedup_parser.add_argument("--input-root", required=True, help="Formatted dataset root directory.")
+    dedup_parser.add_argument("--output-root", required=True, help="Output root for deduplicated dataset files.")
+    dedup_parser.add_argument("--report-path", required=True, help="Output JSON path for the dedup report.")
+    dedup_parser.add_argument("--overwrite", action="store_true", help="Overwrite the output root if it already exists.")
+    dedup_parser.set_defaults(func=_cmd_dedup)
 
     return parser
 

@@ -1,0 +1,184 @@
+{
+  "dataset_split_counts": {
+    "coqa:dev": 10620,
+    "coqa:test": 7983,
+    "coqa:train": 98027,
+    "dailydialog:dev": 3851,
+    "dailydialog:test": 3700,
+    "dailydialog:train": 41637,
+    "dolly:dev": 713,
+    "dolly:test": 757,
+    "dolly:train": 13541,
+    "eli5_category:dev": 5446,
+    "eli5_category:test": 5411,
+    "eli5_category:train": 91772,
+    "eli5_category:validation2": 2375,
+    "ms_marco:dev": 9754,
+    "ms_marco:test": 9399,
+    "ms_marco:train": 80143,
+    "multiwoz:dev": 7374,
+    "multiwoz:test": 7372,
+    "multiwoz:train": 56776,
+    "natural_questions:dev": 5081,
+    "natural_questions:test": 5017,
+    "natural_questions:train": 90133,
+    "squad_v2:dev": 12838,
+    "squad_v2:test": 11873,
+    "squad_v2:train": 117481
+  },
+  "bucket_counts": {
+    "en|multi|dialogue|long": 18,
+    "en|multi|dialogue|medium": 1815,
+    "en|multi|dialogue|short": 118874,
+    "en|multi|dialogue|xlong": 3,
+    "en|multi|qa|long": 1,
+    "en|multi|qa|medium": 30,
+    "en|multi|qa|short": 116598,
+    "en|multi|qa|xlong": 1,
+    "en|single|assistant|long": 1582,
+    "en|single|assistant|medium": 4906,
+    "en|single|assistant|short": 7800,
+    "en|single|assistant|xlong": 723,
+    "en|single|qa|long": 64744,
+    "en|single|qa|medium": 111957,
+    "en|single|qa|short": 251193,
+    "en|single|qa|xlong": 18829
+  },
+  "style_counts": {
+    "assistant_like": 15011,
+    "longform_qa": 105004,
+    "open_chat": 49188,
+    "qa_search": 458349,
+    "task_dialogue": 71522
+  },
+  "bucket_length_stats": {
+    "en|multi|dialogue|long": {
+      "count": 18,
+      "q10": 128,
+      "q50": 140,
+      "q90": 171,
+      "min": 122,
+      "max": 212
+    },
+    "en|multi|dialogue|medium": {
+      "count": 1815,
+      "q10": 42,
+      "q50": 48,
+      "q90": 70,
+      "min": 41,
+      "max": 119
+    },
+    "en|multi|dialogue|short": {
+      "count": 118874,
+      "q10": 6,
+      "q50": 15,
+      "q90": 28,
+      "min": 1,
+      "max": 40
+    },
+    "en|multi|dialogue|xlong": {
+      "count": 3,
+      "q10": 267,
+      "q50": 267,
+      "q90": 294,
+      "min": 267,
+      "max": 294
+    },
+    "en|multi|qa|long": {
+      "count": 1,
+      "q10": 142,
+      "q50": 142,
+      "q90": 142,
+      "min": 142,
+      "max": 142
+    },
+    "en|multi|qa|medium": {
+      "count": 30,
+      "q10": 43,
+      "q50": 53,
+      "q90": 84,
+      "min": 41,
+      "max": 102
+    },
+    "en|multi|qa|short": {
+      "count": 116598,
+      "q10": 1,
+      "q50": 2,
+      "q90": 6,
+      "min": 1,
+      "max": 40
+    },
+    "en|multi|qa|xlong": {
+      "count": 1,
+      "q10": 424,
+      "q50": 424,
+      "q90": 424,
+      "min": 424,
+      "max": 424
+    },
+    "en|single|assistant|long": {
+      "count": 1582,
+      "q10": 127,
+      "q50": 159,
+      "q90": 214,
+      "min": 121,
+      "max": 240
+    },
+    "en|single|assistant|medium": {
+      "count": 4906,
+      "q10": 45,
+      "q50": 69,
+      "q90": 106,
+      "min": 41,
+      "max": 120
+    },
+    "en|single|assistant|short": {
+      "count": 7800,
+      "q10": 3,
+      "q50": 17,
+      "q90": 34,
+      "min": 1,
+      "max": 40
+    },
+    "en|single|assistant|xlong": {
+      "count": 723,
+      "q10": 257,
+      "q50": 340,
+      "q90": 707,
+      "min": 241,
+      "max": 4975
+    },
+    "en|single|qa|long": {
+      "count": 64744,
+      "q10": 127,
+      "q50": 158,
+      "q90": 215,
+      "min": 121,
+      "max": 240
+    },
+    "en|single|qa|medium": {
+      "count": 111957,
+      "q10": 47,
+      "q50": 76,
+      "q90": 110,
+      "min": 41,
+      "max": 120
+    },
+    "en|single|qa|short": {
+      "count": 251193,
+      "q10": 0,
+      "q50": 3,
+      "q90": 28,
+      "min": 0,
+      "max": 40
+    },
+    "en|single|qa|xlong": {
+      "count": 18829,
+      "q10": 250,
+      "q50": 310,
+      "q90": 552,
+      "min": 241,
+      "max": 3029
+    }
+  }
+}
