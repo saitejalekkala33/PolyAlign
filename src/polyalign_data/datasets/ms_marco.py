@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from datasets import load_dataset
-
 from polyalign_data.datasets.base import DatasetFormatter
+from polyalign_data.remote import load_hf_split_with_parquet_fallback
 from polyalign_data.schema import build_record
 from polyalign_data.text import join_non_empty
 
@@ -11,6 +10,11 @@ class MSMARCOFormatter(DatasetFormatter):
     dataset_name = "ms_marco"
     source_name = "microsoft/ms_marco"
     config_name = "v1.1"
+    parquet_files = {
+        "train": "v1.1/train-00000-of-00001.parquet",
+        "validation": "v1.1/validation-00000-of-00001.parquet",
+        "test": "v1.1/test-00000-of-00001.parquet",
+    }
 
     def split_policy(self) -> str:
         return "official HF splits mapped as train/train, validation/dev, test/test"
@@ -40,7 +44,12 @@ class MSMARCOFormatter(DatasetFormatter):
         outputs = {"train": [], "dev": [], "test": []}
         split_map = {"train": "train", "validation": "dev", "test": "test"}
         for source_split, target_split in split_map.items():
-            dataset = load_dataset(self.source_name, self.config_name, split=source_split)
+            dataset = load_hf_split_with_parquet_fallback(
+                self.source_name,
+                config_name=self.config_name,
+                split=source_split,
+                parquet_filename=self.parquet_files[source_split],
+            )
             for row in dataset:
                 answer, used_well_formed = self._choose_answer(row)
                 if not answer:

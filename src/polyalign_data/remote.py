@@ -7,6 +7,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from datasets import load_dataset
 from huggingface_hub import hf_hub_download
 
 from polyalign_data.io_utils import ensure_dir
@@ -37,3 +38,19 @@ def hf_dataset_file(repo_id: str, filename: str) -> Path:
 
 def open_zip(path: Path) -> zipfile.ZipFile:
     return zipfile.ZipFile(path)
+
+
+def load_hf_split_with_parquet_fallback(
+    repo_id: str,
+    *,
+    split: str,
+    config_name: str | None = None,
+    parquet_filename: str | None = None,
+):
+    try:
+        return load_dataset(repo_id, config_name, split=split)
+    except Exception:
+        if not parquet_filename:
+            raise
+        parquet_path = hf_dataset_file(repo_id, parquet_filename)
+        return load_dataset("parquet", data_files={split: str(parquet_path)}, split=split)

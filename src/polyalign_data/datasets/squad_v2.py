@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from datasets import load_dataset
-
 from polyalign_data.datasets.base import DatasetFormatter
+from polyalign_data.remote import load_hf_split_with_parquet_fallback
 from polyalign_data.schema import build_record
 from polyalign_data.splits import choose_split
 
@@ -10,6 +9,10 @@ from polyalign_data.splits import choose_split
 class SQuADV2Formatter(DatasetFormatter):
     dataset_name = "squad_v2"
     source_name = "rajpurkar/squad_v2"
+    parquet_files = {
+        "train": "squad_v2/train-00000-of-00001.parquet",
+        "validation": "squad_v2/validation-00000-of-00001.parquet",
+    }
 
     def split_policy(self) -> str:
         return "paragraph-level 90/10 split over official train; official validation mapped to test"
@@ -50,8 +53,16 @@ class SQuADV2Formatter(DatasetFormatter):
 
     def build_split_records(self) -> dict[str, list[dict]]:
         outputs = {"train": [], "dev": [], "test": []}
-        train_dataset = load_dataset(self.source_name, split="train")
-        validation_dataset = load_dataset(self.source_name, split="validation")
+        train_dataset = load_hf_split_with_parquet_fallback(
+            self.source_name,
+            split="train",
+            parquet_filename=self.parquet_files["train"],
+        )
+        validation_dataset = load_hf_split_with_parquet_fallback(
+            self.source_name,
+            split="validation",
+            parquet_filename=self.parquet_files["validation"],
+        )
 
         for row in train_dataset:
             split = choose_split(
