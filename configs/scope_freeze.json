@@ -1,0 +1,121 @@
+{
+  "frozen_on": "2026-03-27",
+  "paper_scope": {
+    "language_scope": "english_main",
+    "multilingual_scope": "deferred",
+    "excluded_datasets": [
+      "OpenAssistant/oasst2"
+    ]
+  },
+  "datasets": {
+    "dolly": {
+      "source": "databricks/databricks-dolly-15k",
+      "track": "single",
+      "family": "assistant",
+      "style_bucket": "assistant_like",
+      "human_answer_type": "free_form",
+      "role": [
+        "optimization",
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "deterministic_local_split_from_train_only",
+      "split_details": "90/5/5 hash split over the HF train-only release"
+    },
+    "ms_marco": {
+      "source": "microsoft/ms_marco",
+      "config": "v1.1",
+      "track": "single",
+      "family": "qa",
+      "style_bucket": "qa_search",
+      "human_answer_type": "free_form",
+      "role": [
+        "optimization",
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "official_hf_splits",
+      "split_details": "train -> train, validation -> dev, test -> test"
+    },
+    "coqa": {
+      "source": "stanfordnlp/coqa",
+      "track": "multi",
+      "family": "qa",
+      "style_bucket": "qa_search",
+      "human_answer_type": "free_form",
+      "role": [
+        "optimization",
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "conversation_level_resplit",
+      "split_details": "official train is hash-split 90/10 into train/dev; official validation becomes test"
+    },
+    "eli5_category": {
+      "source": "rexarski/eli5_category",
+      "track": "single",
+      "family": "qa",
+      "style_bucket": "longform_qa",
+      "human_answer_type": "free_form_reddit",
+      "role": [
+        "optimization",
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "official_plus_auxiliary_split",
+      "split_details": "train -> train, validation1 -> dev, validation2 kept as auxiliary, test -> test"
+    },
+    "squad_v2": {
+      "source": "rajpurkar/squad_v2",
+      "track": "single",
+      "family": "qa",
+      "style_bucket": "qa_search",
+      "human_answer_type": "extractive_span_or_empty",
+      "role": [
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "paragraph_level_resplit",
+      "split_details": "official train is paragraph-hash-split 90/10 into train/dev; official validation becomes test"
+    },
+    "natural_questions": {
+      "source": "sentence-transformers/natural-questions",
+      "track": "single",
+      "family": "qa",
+      "style_bucket": "qa_search",
+      "human_answer_type": "passage_like_answer_text",
+      "role": [
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "deterministic_local_split_from_train_only",
+      "split_details": "90/5/5 hash split over the train-only HF release"
+    },
+    "dailydialog": {
+      "source": "roskoN/dailydialog",
+      "track": "multi",
+      "family": "dialogue",
+      "style_bucket": "open_chat",
+      "human_answer_type": "human_dialogue_turn",
+      "role": [
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "official_hf_splits_with_role_projection",
+      "split_details": "train -> train, validation -> dev, test -> test; odd turns are treated as targets"
+    },
+    "multiwoz": {
+      "source": "pfb30/multi_woz_v22",
+      "track": "multi",
+      "family": "dialogue",
+      "style_bucket": "task_dialogue",
+      "human_answer_type": "human_system_turn",
+      "role": [
+        "reference",
+        "evaluation"
+      ],
+      "split_policy": "official_hf_splits",
+      "split_details": "train -> train, validation -> dev, test -> test; only SYSTEM turns become targets"
+    }
+  }
+}

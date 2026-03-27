@@ -1,0 +1,9 @@
+{
+  "datasets": [
+    "dolly"
+  ],
+  "output_root": "data/formatted",
+  "cache_dir": "data/cache",
+  "seed": 42,
+  "overwrite": false
+}
