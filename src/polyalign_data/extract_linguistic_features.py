@@ -15,8 +15,15 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.tag import pos_tag
 from nltk.tag.mapping import map_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
+from tqdm.auto import tqdm
 
 from polyalign_data.io_utils import ensure_dir
+from polyalign_data.lm_registry import ResearchModelSpec, model_aliases, resolve_model_aliases
+from polyalign_data.lm_scoring import (
+    DEFAULT_LM_MAX_SEQ_LENGTH,
+    HFLMFeatureExtractor,
+    derive_model_output_paths,
+)
 from polyalign_data.text import normalize_text
 
 
@@ -393,6 +400,55 @@ def _iter_jsonl(path: Path):
                 yield json.loads(line)
 
 
+def _count_jsonl_rows(path: Path) -> int:
+    count = 0
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                count += 1
+    return count
+
+
+def _write_feature_row(
+    jsonl_handle,
+    csv_writer: csv.DictWriter | None,
+    row: dict[str, Any],
+) -> None:
+    jsonl_handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+    if csv_writer is None:
+        return
+    flat_row = {
+        "id": row.get("id", ""),
+        "dataset": row.get("dataset", ""),
+        "split": row.get("split", ""),
+        "field_name": row.get("field_name", ""),
+    }
+    if "model_alias" in row:
+        flat_row["model_alias"] = row["model_alias"]
+        flat_row["model_name"] = row["model_name"]
+    flat_row.update(row["features"])
+    csv_writer.writerow(flat_row)
+
+
+def _open_csv_writer(
+    csv_path: Path | None,
+    feature_names: list[str],
+    *,
+    include_model_columns: bool = False,
+):
+    if csv_path is None:
+        return None, None
+    ensure_dir(csv_path.parent)
+    handle = csv_path.open("w", encoding="utf-8", newline="")
+    fieldnames = ["id", "dataset", "split", "field_name"]
+    if include_model_columns:
+        fieldnames.extend(["model_alias", "model_name"])
+    fieldnames.extend(feature_names)
+    writer = csv.DictWriter(handle, fieldnames=fieldnames)
+    writer.writeheader()
+    return handle, writer
+
+
 def extract_features_file(
     input_path: str | Path,
     output_jsonl: str | Path,
@@ -404,9 +460,16 @@ def extract_features_file(
     input_file = Path(input_path)
     output_file = Path(output_jsonl)
     ensure_dir(output_file.parent)
+    total_rows = _count_jsonl_rows(input_file)
 
     rows: list[dict[str, Any]] = []
-    for record in _iter_jsonl(input_file):
+    progress = tqdm(
+        _iter_jsonl(input_file),
+        total=total_rows,
+        desc=f"text-features:{input_file.stem}",
+        unit="row",
+    )
+    for record in progress:
         text_value = normalize_text(record.get(text_field, ""))
         feature_row = {
             "id": record.get("id", ""),
@@ -450,12 +513,92 @@ def extract_features_file(
     }
 
 
+def extract_model_features_file(
+    input_path: str | Path,
+    output_jsonl: str | Path,
+    *,
+    model_spec: ResearchModelSpec,
+    text_field: str = "human_answer",
+    output_csv: str | Path | None = None,
+    include_text: bool = False,
+    device: str = "auto",
+    dtype: str = "auto",
+    max_seq_length: int = DEFAULT_LM_MAX_SEQ_LENGTH,
+    trust_remote_code: bool = False,
+) -> dict[str, Any]:
+    input_file = Path(input_path)
+    output_file = Path(output_jsonl)
+    ensure_dir(output_file.parent)
+    total_rows = _count_jsonl_rows(input_file)
+
+    extractor = HFLMFeatureExtractor(
+        model_spec,
+        device=device,
+        dtype=dtype,
+        max_seq_length=max_seq_length,
+        trust_remote_code=trust_remote_code,
+    )
+
+    rows = 0
+    feature_count = 0
+    csv_handle = None
+    csv_writer = None
+
+    try:
+        with output_file.open("w", encoding="utf-8") as jsonl_handle:
+            progress = tqdm(
+                _iter_jsonl(input_file),
+                total=total_rows,
+                desc=f"lm-features:{model_spec.alias}:{input_file.stem}",
+                unit="row",
+            )
+            for record in progress:
+                text_value = normalize_text(record.get(text_field, ""))
+                features = extract_linguistic_features(text_value)
+                features.update(extractor.score_record(record, text_field=text_field))
+                feature_count = feature_count or len(features)
+                if output_csv and csv_writer is None:
+                    csv_path = Path(output_csv)
+                    csv_handle, csv_writer = _open_csv_writer(
+                        csv_path,
+                        sorted(features.keys()),
+                        include_model_columns=True,
+                    )
+                feature_row = {
+                    "id": record.get("id", ""),
+                    "dataset": record.get("dataset", ""),
+                    "split": record.get("split", ""),
+                    "field_name": text_field,
+                    "model_alias": model_spec.alias,
+                    "model_name": model_spec.model_id,
+                    "features": features,
+                }
+                if include_text:
+                    feature_row["text"] = text_value
+                _write_feature_row(jsonl_handle, csv_writer, feature_row)
+                rows += 1
+    finally:
+        if csv_handle is not None:
+            csv_handle.close()
+
+    return {
+        "input_path": str(input_file),
+        "output_jsonl": str(output_file),
+        "output_csv": str(output_csv) if output_csv else None,
+        "records": rows,
+        "feature_count": feature_count,
+        "text_field": text_field,
+        "model_alias": model_spec.alias,
+        "model_name": model_spec.model_id,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Extract answer-only linguistic features from a merged PolyAlign JSONL file."
+        description="Extract text-based and optional model-scored answer features from a merged PolyAlign JSONL file."
     )
-    parser.add_argument("--input-path", required=True, help="Input JSONL file in the PolyAlign current-format schema.")
-    parser.add_argument("--output-jsonl", required=True, help="Output JSONL path for extracted features.")
+    parser.add_argument("--input-path", help="Input JSONL file in the PolyAlign current-format schema.")
+    parser.add_argument("--output-jsonl", help="Output JSONL path for text-only extracted features.")
     parser.add_argument(
         "--text-field",
         default="human_answer",
@@ -463,15 +606,109 @@ def main() -> None:
     )
     parser.add_argument("--output-csv", help="Optional wide CSV export with one row per example and one column per feature.")
     parser.add_argument("--include-text", action="store_true", help="Include the featurized text in the output JSONL.")
-    args = parser.parse_args()
-    summary = extract_features_file(
-        args.input_path,
-        args.output_jsonl,
-        text_field=args.text_field,
-        output_csv=args.output_csv,
-        include_text=args.include_text,
+    parser.add_argument(
+        "--lm-model",
+        action="append",
+        choices=["all", *model_aliases()],
+        help="Optional research LM alias to score with. Repeat to emit per-model outputs.",
     )
-    print(json.dumps(summary, indent=2, ensure_ascii=False))
+    parser.add_argument(
+        "--lm-output-root",
+        help="Output root for per-model feature files. Each model alias gets its own subdirectory.",
+    )
+    parser.add_argument(
+        "--lm-write-csv",
+        action="store_true",
+        help="Also write one wide CSV per LM-specific output directory.",
+    )
+    parser.add_argument(
+        "--lm-device",
+        default="auto",
+        help="Execution device for Hugging Face LM scoring. Use `auto`, `cpu`, `cuda`, or a torch device string.",
+    )
+    parser.add_argument(
+        "--lm-dtype",
+        default="auto",
+        choices=["auto", "float16", "bfloat16", "float32"],
+        help="Torch dtype for LM scoring.",
+    )
+    parser.add_argument(
+        "--lm-max-seq-length",
+        type=int,
+        default=DEFAULT_LM_MAX_SEQ_LENGTH,
+        help="Maximum sequence length used for LM scoring. Prefix tokens are truncated from the left first.",
+    )
+    parser.add_argument(
+        "--lm-trust-remote-code",
+        action="store_true",
+        help="Pass trust_remote_code=True when loading Hugging Face models and tokenizers.",
+    )
+    parser.add_argument(
+        "--list-lm-models",
+        action="store_true",
+        help="Print the supported LM aliases and exit.",
+    )
+    args = parser.parse_args()
+    if args.list_lm_models:
+        print(
+            json.dumps(
+                {alias: {"model_id": resolve_model_aliases([alias])[0].model_id} for alias in model_aliases()},
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    if not args.input_path:
+        parser.error("--input-path is required unless --list-lm-models is used.")
+    if not args.output_jsonl and not args.lm_model:
+        parser.error("Provide --output-jsonl for text-only features, or use --lm-model with --lm-output-root.")
+    if args.lm_model and not args.lm_output_root:
+        parser.error("--lm-output-root is required when --lm-model is used.")
+
+    summaries: dict[str, Any] = {"input_path": args.input_path, "text_field": args.text_field}
+    input_file = Path(args.input_path)
+
+    if args.output_jsonl:
+        summaries["text_features"] = extract_features_file(
+            args.input_path,
+            args.output_jsonl,
+            text_field=args.text_field,
+            output_csv=args.output_csv,
+            include_text=args.include_text,
+        )
+
+    if args.lm_model:
+        base_jsonl_name = Path(args.output_jsonl).name if args.output_jsonl else None
+        base_csv_name = Path(args.output_csv).name if args.output_csv else None
+        model_summaries = []
+        for model_spec in resolve_model_aliases(args.lm_model):
+            model_output_jsonl, model_output_csv = derive_model_output_paths(
+                input_file,
+                output_root=Path(args.lm_output_root),
+                model_alias=model_spec.alias,
+                text_field=args.text_field,
+                base_jsonl_name=base_jsonl_name,
+                write_csv=args.lm_write_csv or bool(args.output_csv),
+                base_csv_name=base_csv_name,
+            )
+            model_summaries.append(
+                extract_model_features_file(
+                    args.input_path,
+                    model_output_jsonl,
+                    model_spec=model_spec,
+                    text_field=args.text_field,
+                    output_csv=model_output_csv,
+                    include_text=args.include_text,
+                    device=args.lm_device,
+                    dtype=args.lm_dtype,
+                    max_seq_length=args.lm_max_seq_length,
+                    trust_remote_code=args.lm_trust_remote_code,
+                )
+            )
+        summaries["lm_features"] = model_summaries
+
+    print(json.dumps(summaries, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
