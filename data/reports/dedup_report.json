@@ -1,6 +1,6 @@
 {
-  "input_root": "data\\formatted",
-  "output_root": "data\\formatted_dedup",
+  "input_root": "data/formatted",
+  "output_root": "data/formatted_dedup",
   "policy": {
     "exact_example_dedup": true,
     "group_aware_split_protection": true,

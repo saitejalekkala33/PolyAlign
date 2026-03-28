@@ -4,3 +4,5 @@ data/formatted_dedup/
 data/merged_sft_dedup/
 data/features/
 polyalign_data.egg-info/
+.cache/
+data/reference_artifacts/**/*.jsonl

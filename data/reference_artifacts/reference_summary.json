@@ -1,0 +1,56 @@
+{
+  "record_paths": [
+    "data/merged_sft_dedup/current/val.jsonl",
+    "data/merged_sft_dedup/current/test.jsonl"
+  ],
+  "feature_paths": [
+    "data/features/research_models/val/qwen25_1_5b/val_answer_features_dedup.jsonl",
+    "data/features/research_models/test/qwen25_1_5b/test_answer_features_dedup.jsonl"
+  ],
+  "feature_matrix_path": "data/reference_artifacts/feature_matrix.jsonl",
+  "bucket_references_path": "data/reference_artifacts/bucket_references.json",
+  "total_records": 107055,
+  "feature_count": 177,
+  "min_bucket_size": 20,
+  "bucket_counts": {
+    "en|multi|dialogue|long": 4,
+    "en|multi|dialogue|medium": 304,
+    "en|multi|dialogue|short": 21864,
+    "en|multi|qa|medium": 4,
+    "en|multi|qa|short": 18599,
+    "en|single|assistant|long": 171,
+    "en|single|assistant|medium": 472,
+    "en|single|assistant|short": 751,
+    "en|single|assistant|xlong": 76,
+    "en|single|qa|long": 6593,
+    "en|single|qa|medium": 12281,
+    "en|single|qa|short": 43812,
+    "en|single|qa|xlong": 2124
+  },
+  "split_counts": {
+    "dev": 55575,
+    "test": 51480
+  },
+  "style_counts": {
+    "assistant_like": 1470,
+    "longform_qa": 10857,
+    "open_chat": 7455,
+    "qa_search": 72556,
+    "task_dialogue": 14717
+  },
+  "dataset_counts": {
+    "coqa": 18603,
+    "dailydialog": 7455,
+    "dolly": 1470,
+    "eli5_category": 10857,
+    "ms_marco": 19153,
+    "multiwoz": 14717,
+    "natural_questions": 10098,
+    "squad_v2": 24702
+  },
+  "retained_bucket_count": 11,
+  "skipped_buckets": {
+    "en|multi|dialogue|long": 4,
+    "en|multi|qa|medium": 4
+  }
+}
