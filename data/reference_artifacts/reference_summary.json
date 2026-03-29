@@ -1,56 +1,64 @@
 {
   "record_paths": [
+    "data/merged_sft_dedup/current/train.jsonl",
     "data/merged_sft_dedup/current/val.jsonl",
     "data/merged_sft_dedup/current/test.jsonl"
   ],
   "feature_paths": [
+    "data/features/research_models/train/qwen25_1_5b/train_answer_features_dedup.jsonl",
     "data/features/research_models/val/qwen25_1_5b/val_answer_features_dedup.jsonl",
     "data/features/research_models/test/qwen25_1_5b/test_answer_features_dedup.jsonl"
   ],
   "feature_matrix_path": "data/reference_artifacts/feature_matrix.jsonl",
   "bucket_references_path": "data/reference_artifacts/bucket_references.json",
-  "total_records": 107055,
+  "total_records": 691477,
   "feature_count": 177,
   "min_bucket_size": 20,
   "bucket_counts": {
-    "en|multi|dialogue|long": 4,
-    "en|multi|dialogue|medium": 304,
-    "en|multi|dialogue|short": 21864,
-    "en|multi|qa|medium": 4,
-    "en|multi|qa|short": 18599,
-    "en|single|assistant|long": 171,
-    "en|single|assistant|medium": 472,
-    "en|single|assistant|short": 751,
-    "en|single|assistant|xlong": 76,
-    "en|single|qa|long": 6593,
-    "en|single|qa|medium": 12281,
-    "en|single|qa|short": 43812,
-    "en|single|qa|xlong": 2124
+    "en|multi|dialogue|long": 18,
+    "en|multi|dialogue|medium": 1714,
+    "en|multi|dialogue|short": 113827,
+    "en|multi|dialogue|xlong": 3,
+    "en|multi|qa|long": 1,
+    "en|multi|qa|medium": 30,
+    "en|multi|qa|short": 116586,
+    "en|multi|qa|xlong": 1,
+    "en|single|assistant|long": 1578,
+    "en|single|assistant|medium": 4901,
+    "en|single|assistant|short": 7794,
+    "en|single|assistant|xlong": 722,
+    "en|single|qa|long": 64147,
+    "en|single|qa|medium": 110857,
+    "en|single|qa|short": 250834,
+    "en|single|qa|xlong": 18464
   },
   "split_counts": {
     "dev": 55575,
-    "test": 51480
+    "test": 51480,
+    "train": 584422
   },
   "style_counts": {
-    "assistant_like": 1470,
-    "longform_qa": 10857,
-    "open_chat": 7455,
-    "qa_search": 72556,
-    "task_dialogue": 14717
+    "assistant_like": 14995,
+    "longform_qa": 102629,
+    "open_chat": 44832,
+    "qa_search": 458291,
+    "task_dialogue": 70730
   },
   "dataset_counts": {
-    "coqa": 18603,
-    "dailydialog": 7455,
-    "dolly": 1470,
-    "eli5_category": 10857,
-    "ms_marco": 19153,
-    "multiwoz": 14717,
-    "natural_questions": 10098,
-    "squad_v2": 24702
+    "coqa": 116618,
+    "dailydialog": 44832,
+    "dolly": 14995,
+    "eli5_category": 102629,
+    "ms_marco": 99296,
+    "multiwoz": 70730,
+    "natural_questions": 100231,
+    "squad_v2": 142146
   },
-  "retained_bucket_count": 11,
+  "retained_bucket_count": 12,
   "skipped_buckets": {
-    "en|multi|dialogue|long": 4,
-    "en|multi|qa|medium": 4
+    "en|multi|dialogue|long": 18,
+    "en|multi|dialogue|xlong": 3,
+    "en|multi|qa|long": 1,
+    "en|multi|qa|xlong": 1
   }
 }
