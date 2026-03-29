@@ -1,0 +1,14 @@
+{
+  "input_path": "data/merged_sft_dedup/llamafactory/test.json",
+  "output_dir": "experiments/base_lm/runs/qwen25_1_5b",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "records_remaining": 0,
+  "model_name": "Qwen/Qwen2.5-1.5B",
+  "base_url": "http://127.0.0.1:8000",
+  "predictions_path": "experiments/base_lm/runs/qwen25_1_5b/predictions.jsonl",
+  "elapsed_seconds": 8842.215,
+  "batch_size": 4,
+  "resume": true
+}

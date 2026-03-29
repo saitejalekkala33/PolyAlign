@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "elapsed_seconds": 8842.216,
+  "predictions_path": "experiments/base_lm/runs/qwen25_1_5b/predictions.jsonl",
+  "batch_size": 4
+}
