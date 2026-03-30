@@ -152,6 +152,10 @@ def resolve_evaluation_paths(
     resolved_current = resolve_path(current_test_path, current_candidate)
     resolved_bucket_refs = resolve_path(bucket_references_path, bucket_refs_candidate)
     resolved_human_features = resolve_path(human_feature_path, human_feature_candidate)
+    if resolved_human_features is not None and not resolved_human_features.exists():
+        csv_fallback = resolved_human_features.with_suffix(".csv")
+        if csv_fallback.exists():
+            resolved_human_features = csv_fallback
     resolved_feature_matrix = resolve_path(feature_matrix_path, feature_matrix_candidate)
     resolved_work_dir = Path(work_dir) if work_dir else work_dir_candidate
 

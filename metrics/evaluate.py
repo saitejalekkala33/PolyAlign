@@ -9,7 +9,6 @@ import pandas as pd
 from metrics.features import (
     build_reference_feature_frame_from_feature_matrix,
     build_reference_feature_frame_from_human_test,
-    ensure_generated_records_file,
     ensure_human_feature_file,
     ensure_prediction_feature_file,
     frame_to_distribution_map,
@@ -24,6 +23,7 @@ from metrics.metrics_lib import (
     compute_mauve,
     compute_tdm,
     shared_feature_names,
+    summarize_aggregate,
     summarize_diversity,
     summarize_nuf,
     summarize_utility,
@@ -154,24 +154,18 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
     )
     log_step("Diversity metrics complete")
 
-    log_step("Preparing generated current-format records")
-    generated_records_path = ensure_generated_records_file(
+    log_step("Preparing prediction-side LM feature file")
+    prediction_feature_info, generated_records_info = ensure_prediction_feature_file(
         paths=paths,
         current_test_rows=current_test_rows,
         prediction_rows=prediction_rows,
-        overwrite=args.overwrite_artifacts,
-    )
-    log_step("Preparing prediction-side LM feature file")
-    prediction_feature_path = ensure_prediction_feature_file(
-        paths=paths,
-        generated_records_path=generated_records_path,
         overwrite=args.overwrite_artifacts,
         device=args.device,
         dtype=args.dtype,
         max_seq_length=args.max_seq_length,
     )
     log_step("Preparing human reference feature file")
-    human_feature_path = ensure_human_feature_file(
+    human_feature_info = ensure_human_feature_file(
         paths=paths,
         overwrite=args.overwrite_artifacts,
         device=args.device,
@@ -180,7 +174,7 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
     )
 
     log_step("Loading generated and human feature tables")
-    generated_feature_frame = load_feature_frame(prediction_feature_path)
+    generated_feature_frame = load_feature_frame(prediction_feature_info.path)
     generated_feature_frame = aligned_frame[["id", "bucket_id", "track", "family", "style_bucket", "length_bin"]].merge(
         generated_feature_frame,
         on="id",
@@ -192,7 +186,7 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
             f"Prediction feature rows ({len(generated_feature_frame)}) do not align one-to-one with predictions ({len(aligned_frame)})."
         )
 
-    human_feature_frame = load_feature_frame(human_feature_path)
+    human_feature_frame = load_feature_frame(human_feature_info.path)
     log_step("Building human reference distribution source")
     if args.bng_reference_source == "feature_matrix":
         if paths.feature_matrix_path is None or not paths.feature_matrix_path.exists():
@@ -259,6 +253,13 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
         mauve_summary=mauve_summary,
         tdm_summary=tdm_summary,
     )
+    log_step("Computing aggregate summary")
+    aggregate_summary = summarize_aggregate(
+        utility_summary=utility_summary,
+        bng_summary=bng_summary,
+        mauve_summary=mauve_summary,
+        nuf_summary=nuf_summary,
+    )
     log_step("Metric computation complete")
 
     return {
@@ -266,7 +267,7 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
             "test_lf_path": str(paths.test_lf_path),
             "predictions_path": str(paths.predictions_path),
             "current_test_path": str(paths.current_test_path),
-            "human_feature_path": str(human_feature_path),
+            "human_feature_path": str(human_feature_info.path),
             "bucket_references_path": str(paths.bucket_references_path),
             "feature_matrix_path": str(paths.feature_matrix_path) if paths.feature_matrix_path else None,
             "output_json_path": str(paths.output_json_path),
@@ -288,9 +289,12 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
         },
         "alignment": alignment_report,
         "artifacts": {
-            "generated_records_path": str(generated_records_path),
-            "prediction_feature_path": str(prediction_feature_path),
-            "human_feature_path": str(human_feature_path),
+            "generated_records_path": str(generated_records_info.path) if generated_records_info.path else None,
+            "generated_records_status": generated_records_info.status,
+            "prediction_feature_path": str(prediction_feature_info.path),
+            "prediction_feature_status": prediction_feature_info.status,
+            "human_feature_path": str(human_feature_info.path),
+            "human_feature_status": human_feature_info.status,
             "shared_feature_count": len(feature_names),
             "shared_feature_names": feature_names,
         },
@@ -302,6 +306,7 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
             "mauve": mauve_summary,
             "tdm": tdm_summary,
             "nuf": nuf_summary,
+            "aggregate": aggregate_summary,
         },
     }
 

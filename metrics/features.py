@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from array import array
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,12 @@ from polyalign_data.lm_registry import resolve_model_aliases
 
 def log_step(message: str) -> None:
     print(f"[metrics] {message}", flush=True)
+
+
+@dataclass(frozen=True)
+class ArtifactInfo:
+    path: Path | None
+    status: str
 
 
 def build_alignment_report(
@@ -118,15 +125,24 @@ def ensure_generated_records_file(
     current_test_rows: list[dict[str, Any]],
     prediction_rows: list[dict[str, Any]],
     overwrite: bool,
-) -> Path:
+) -> ArtifactInfo:
     output_path = paths.work_dir / "generated_current_records.jsonl"
     if output_path.exists() and not overwrite:
         log_step(f"Reusing generated records: {output_path}")
-        return output_path
+        return ArtifactInfo(path=output_path, status="reused")
     log_step(f"Writing generated current-format records: {output_path}")
     generated_rows = build_generated_current_rows(current_test_rows, prediction_rows)
     write_jsonl(output_path, generated_rows)
-    return output_path
+    return ArtifactInfo(path=output_path, status="created")
+
+
+def find_existing_feature_artifact(output_jsonl_path: Path) -> Path | None:
+    if output_jsonl_path.exists():
+        return output_jsonl_path
+    csv_path = output_jsonl_path.with_suffix(".csv")
+    if csv_path.exists():
+        return csv_path
+    return None
 
 
 def ensure_model_feature_file(
@@ -139,10 +155,11 @@ def ensure_model_feature_file(
     device: str,
     dtype: str,
     max_seq_length: int,
-) -> Path:
-    if output_jsonl_path.exists() and not overwrite:
-        log_step(f"Reusing feature file: {output_jsonl_path}")
-        return output_jsonl_path
+) -> ArtifactInfo:
+    existing_artifact = None if overwrite else find_existing_feature_artifact(output_jsonl_path)
+    if existing_artifact is not None:
+        log_step(f"Reusing feature file: {existing_artifact}")
+        return ArtifactInfo(path=existing_artifact, status="reused")
     log_step(
         f"Computing model features with {model_alias} for field `{text_field}` -> {output_jsonl_path}"
     )
@@ -160,21 +177,35 @@ def ensure_model_feature_file(
         dtype=dtype,
         max_seq_length=max_seq_length,
     )
-    return output_jsonl_path
+    return ArtifactInfo(path=output_jsonl_path, status="created")
 
 
 def ensure_prediction_feature_file(
     *,
     paths: EvaluationPaths,
-    generated_records_path: Path,
+    current_test_rows: list[dict[str, Any]],
+    prediction_rows: list[dict[str, Any]],
     overwrite: bool,
     device: str,
     dtype: str,
     max_seq_length: int,
-) -> Path:
+) -> tuple[ArtifactInfo, ArtifactInfo]:
     output_path = paths.work_dir / f"prediction_features_{paths.model_alias}.jsonl"
-    return ensure_model_feature_file(
-        input_jsonl_path=generated_records_path,
+    existing_artifact = None if overwrite else find_existing_feature_artifact(output_path)
+    if existing_artifact is not None:
+        log_step(f"Reusing prediction-side feature file: {existing_artifact}")
+        return ArtifactInfo(path=existing_artifact, status="reused"), ArtifactInfo(path=None, status="not_required")
+
+    generated_records_info = ensure_generated_records_file(
+        paths=paths,
+        current_test_rows=current_test_rows,
+        prediction_rows=prediction_rows,
+        overwrite=overwrite,
+    )
+    if generated_records_info.path is None:
+        raise ValueError("Generated records path is unavailable while computing prediction features.")
+    feature_info = ensure_model_feature_file(
+        input_jsonl_path=generated_records_info.path,
         output_jsonl_path=output_path,
         model_alias=paths.model_alias,
         text_field="model_answer",
@@ -183,6 +214,7 @@ def ensure_prediction_feature_file(
         dtype=dtype,
         max_seq_length=max_seq_length,
     )
+    return feature_info, generated_records_info
 
 
 def ensure_human_feature_file(
@@ -192,10 +224,10 @@ def ensure_human_feature_file(
     device: str,
     dtype: str,
     max_seq_length: int,
-) -> Path:
+) -> ArtifactInfo:
     if paths.human_feature_path is not None and paths.human_feature_path.exists():
         log_step(f"Reusing human feature file: {paths.human_feature_path}")
-        return paths.human_feature_path
+        return ArtifactInfo(path=paths.human_feature_path, status="reused")
     output_path = paths.work_dir / f"human_test_features_{paths.model_alias}.jsonl"
     return ensure_model_feature_file(
         input_jsonl_path=paths.current_test_path,
@@ -227,6 +259,12 @@ def feature_rows_to_frame(feature_rows: list[dict[str, Any]]) -> pd.DataFrame:
 
 
 def load_feature_frame(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() == ".csv":
+        frame = pd.read_csv(path)
+        unnamed_columns = [column for column in frame.columns if str(column).startswith("Unnamed:")]
+        if unnamed_columns:
+            frame = frame.drop(columns=unnamed_columns)
+        return frame
     return feature_rows_to_frame(load_jsonl(path))
 
 

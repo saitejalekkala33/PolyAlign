@@ -17,6 +17,12 @@ from sklearn.preprocessing import StandardScaler
 from metrics.io import normalize_answer
 
 
+def _trapezoid_integral(y: np.ndarray, x: np.ndarray) -> float:
+    if hasattr(np, "trapezoid"):
+        return float(np.trapezoid(y, x))
+    return float(np.trapz(y, x))
+
+
 def token_f1(prediction: str, reference: str) -> float:
     prediction_tokens = normalize_answer(prediction).split()
     reference_tokens = normalize_answer(reference).split()
@@ -318,7 +324,7 @@ def compute_mauve(
     seed: int,
 ) -> dict[str, Any]:
     if skip_mauve:
-        return {"global": math.nan, "by_bucket": [], "skipped": True}
+        return {"global": math.nan, "overall_macro": math.nan, "overall_weighted": math.nan, "by_bucket": [], "skipped": True}
 
     mauve = _try_import_mauve()
 
@@ -352,7 +358,18 @@ def compute_mauve(
         if min(len(human_texts), len(generated_texts)) < min_bucket_size:
             continue
         rows.append({"bucket_id": bucket_id, "n_examples": int(len(bucket_frame)), "c_mauve": _score(human_texts, generated_texts)})
-    return {"global": global_score, "by_bucket": rows, "skipped": False}
+    bucket_scores = pd.DataFrame(rows)
+    overall_macro = float(bucket_scores["c_mauve"].mean()) if not bucket_scores.empty else math.nan
+    overall_weighted = (
+        float(np.average(bucket_scores["c_mauve"], weights=bucket_scores["n_examples"])) if not bucket_scores.empty else math.nan
+    )
+    return {
+        "global": global_score,
+        "overall_macro": overall_macro,
+        "overall_weighted": overall_weighted,
+        "by_bucket": rows,
+        "skipped": False,
+    }
 
 
 def _cosine_similarity_rows(left: np.ndarray, right: np.ndarray) -> np.ndarray:
@@ -521,11 +538,142 @@ def compute_pareto_frontier(
             best_naturalness = naturalness_value
     frontier_df = pd.DataFrame(frontier_points).sort_values(utility_column) if frontier_points else pd.DataFrame()
     frontier_auc = (
-        float(np.trapz(frontier_df[naturalness_column].to_numpy(), frontier_df[utility_column].to_numpy()))
+        _trapezoid_integral(frontier_df[naturalness_column].to_numpy(), frontier_df[utility_column].to_numpy())
         if len(frontier_df) >= 2
         else math.nan
     )
     return {"frontier_auc": frontier_auc, "frontier_points": frontier_points}
+
+
+def compute_hypervolume(
+    bucket_frame: pd.DataFrame,
+    *,
+    utility_column: str,
+    naturalness_column: str,
+    reference_point: tuple[float, float] = (0.0, 0.0),
+) -> float:
+    clean = bucket_frame.dropna(subset=[utility_column, naturalness_column]).copy()
+    if clean.empty:
+        return math.nan
+    frontier = compute_pareto_frontier(
+        clean,
+        utility_column=utility_column,
+        naturalness_column=naturalness_column,
+    )
+    if not frontier["frontier_points"]:
+        return math.nan
+    reference_utility, reference_naturalness = reference_point
+    frontier_df = pd.DataFrame(frontier["frontier_points"]).sort_values(utility_column)
+    frontier_df = frontier_df[
+        (frontier_df[utility_column] > reference_utility)
+        & (frontier_df[naturalness_column] > reference_naturalness)
+    ]
+    if frontier_df.empty:
+        return 0.0
+    hypervolume = 0.0
+    previous_utility = float(reference_utility)
+    for _, row in frontier_df.iterrows():
+        utility_value = float(row[utility_column])
+        naturalness_value = float(row[naturalness_column])
+        if utility_value <= previous_utility:
+            continue
+        hypervolume += (utility_value - previous_utility) * (naturalness_value - reference_naturalness)
+        previous_utility = utility_value
+    return float(hypervolume)
+
+
+def _clip01_series(series: pd.Series) -> pd.Series:
+    return series.astype(float).clip(lower=0.0, upper=1.0)
+
+
+def _normalize_global_metric_series(series: pd.Series, *, metric_name: str) -> pd.Series:
+    numeric = series.astype(float)
+    if metric_name == "bng":
+        return 1.0 / (1.0 + numeric.clip(lower=0.0))
+    return _clip01_series(numeric)
+
+
+def _bounded_geometric_mean(values: np.ndarray) -> float:
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        return math.nan
+    bounded = np.clip(finite, 0.0, 1.0)
+    if np.any(bounded == 0.0):
+        return 0.0
+    return float(np.exp(np.mean(np.log(bounded))))
+
+
+def _rowwise_bounded_geometric_mean(frame: pd.DataFrame, columns: list[str]) -> pd.Series:
+    if not columns:
+        return pd.Series([math.nan] * len(frame), index=frame.index, dtype=float)
+    matrix = frame[columns].to_numpy(dtype=float)
+    result = np.full(len(frame), np.nan, dtype=float)
+    valid_rows = np.isfinite(matrix).all(axis=1)
+    if not np.any(valid_rows):
+        return pd.Series(result, index=frame.index, dtype=float)
+    valid_matrix = np.clip(matrix[valid_rows], 0.0, 1.0)
+    zero_rows = np.any(valid_matrix == 0.0, axis=1)
+    result_valid = np.empty(len(valid_matrix), dtype=float)
+    result_valid[zero_rows] = 0.0
+    nonzero_rows = ~zero_rows
+    if np.any(nonzero_rows):
+        result_valid[nonzero_rows] = np.exp(np.mean(np.log(valid_matrix[nonzero_rows]), axis=1))
+    result[valid_rows] = result_valid
+    return pd.Series(result, index=frame.index, dtype=float)
+
+
+def build_global_normalized_nuf_summary(
+    bucket_frame: pd.DataFrame,
+    *,
+    utility_column: str,
+    metric_columns: list[str],
+    reference_point: tuple[float, float] = (0.0, 0.0),
+) -> dict[str, Any]:
+    if bucket_frame.empty:
+        return {
+            "normalization": "global_fixed_scale",
+            "utility_axis": utility_column,
+            "naturalness_components": metric_columns,
+            "reference_point": {"utility": reference_point[0], "naturalness": reference_point[1]},
+            "frontier_auc": math.nan,
+            "hypervolume": math.nan,
+            "frontier_points": [],
+            "by_bucket": [],
+        }
+
+    working = bucket_frame.copy()
+    working["utility_score"] = _clip01_series(working[utility_column])
+    normalized_columns: list[str] = []
+    for metric_column in metric_columns:
+        if metric_column not in working:
+            continue
+        normalized_column = f"normalized__{metric_column}"
+        working[normalized_column] = _normalize_global_metric_series(working[metric_column], metric_name=metric_column)
+        normalized_columns.append(normalized_column)
+
+    working["naturalness_score"] = _rowwise_bounded_geometric_mean(working, normalized_columns)
+    frontier = compute_pareto_frontier(
+        working,
+        utility_column="utility_score",
+        naturalness_column="naturalness_score",
+    )
+    hypervolume = compute_hypervolume(
+        working,
+        utility_column="utility_score",
+        naturalness_column="naturalness_score",
+        reference_point=reference_point,
+    )
+    return {
+        "normalization": "global_fixed_scale",
+        "utility_axis": utility_column,
+        "naturalness_components": metric_columns,
+        "normalized_component_columns": normalized_columns,
+        "reference_point": {"utility": reference_point[0], "naturalness": reference_point[1]},
+        "frontier_auc": frontier["frontier_auc"],
+        "hypervolume": hypervolume,
+        "frontier_points": frontier["frontier_points"],
+        "by_bucket": working.to_dict(orient="records"),
+    }
 
 
 def build_naturalness_index(
@@ -612,10 +760,20 @@ def summarize_nuf(
         utility_column="utility_qa_f1",
         metric_columns=["bng", "hcr", "c_mauve"],
     )
-    multi_turn_frame, multi_turn_frontier = build_naturalness_index(
+    legacy_multi_turn_frame, legacy_multi_turn_frontier = build_naturalness_index(
         naturalness_frame.dropna(subset=["tdm"]),
         utility_column="utility_qa_f1",
         metric_columns=["bng", "hcr", "c_mauve", "tdm"],
+    )
+    overall_summary = build_global_normalized_nuf_summary(
+        naturalness_frame,
+        utility_column="utility_qa_f1",
+        metric_columns=["bng", "c_mauve"],
+    )
+    multi_turn_summary = build_global_normalized_nuf_summary(
+        naturalness_frame.dropna(subset=["tdm"]),
+        utility_column="utility_qa_f1",
+        metric_columns=["bng", "c_mauve", "tdm"],
     )
     return {
         "core": {
@@ -624,10 +782,52 @@ def summarize_nuf(
             "frontier_points": core_frontier["frontier_points"],
             "by_bucket": core_frame.to_dict(orient="records"),
         },
+        "overall": overall_summary,
         "multi_turn": {
-            "frontier_auc": multi_turn_frontier["frontier_auc"],
-            "loadings": multi_turn_frontier["loadings"],
-            "frontier_points": multi_turn_frontier["frontier_points"],
-            "by_bucket": multi_turn_frame.to_dict(orient="records"),
+            **multi_turn_summary,
+            "legacy_frontier_auc": legacy_multi_turn_frontier["frontier_auc"],
+            "legacy_loadings": legacy_multi_turn_frontier["loadings"],
+            "legacy_frontier_points": legacy_multi_turn_frontier["frontier_points"],
+            "legacy_by_bucket": legacy_multi_turn_frame.to_dict(orient="records"),
         },
+    }
+
+
+def summarize_aggregate(
+    *,
+    utility_summary: dict[str, Any],
+    bng_summary: dict[str, Any],
+    mauve_summary: dict[str, Any],
+    nuf_summary: dict[str, Any],
+) -> dict[str, Any]:
+    qa_f1 = float(utility_summary["overall"]["qa_f1"])
+    raw_bng_macro = bng_summary["overall_macro"]
+    bng_score = _bounded_geometric_mean(
+        np.array([_normalize_global_metric_series(pd.Series([raw_bng_macro]), metric_name="bng").iloc[0]], dtype=float)
+    )
+    c_mauve_macro = mauve_summary.get("overall_macro", math.nan)
+    if not math.isfinite(c_mauve_macro):
+        c_mauve_macro = mauve_summary.get("global", math.nan)
+    nuf_hypervolume = nuf_summary.get("overall", {}).get("hypervolume", math.nan)
+
+    normalized_components = {
+        "qa_f1": _bounded_geometric_mean(np.array([qa_f1], dtype=float)),
+        "bng_score": bng_score,
+        "c_mauve": _bounded_geometric_mean(np.array([c_mauve_macro], dtype=float)),
+        "nuf_hypervolume": _bounded_geometric_mean(np.array([nuf_hypervolume], dtype=float)),
+    }
+    valid_values = [value for value in normalized_components.values() if math.isfinite(value)]
+    overall = _bounded_geometric_mean(np.array(valid_values, dtype=float)) if len(valid_values) >= 2 else math.nan
+
+    return {
+        "overall": overall,
+        "method": "geometric_mean_global_fixed_scale",
+        "raw_metrics": {
+            "qa_f1": qa_f1,
+            "bng_macro": raw_bng_macro,
+            "c_mauve": c_mauve_macro,
+            "nuf_hypervolume": nuf_hypervolume,
+        },
+        "components": normalized_components,
+        "component_count": len(valid_values),
     }
