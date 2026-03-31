@@ -7,7 +7,11 @@ polyalign_data.egg-info/
 .cache/
 data/reference_artifacts/**/*.jsonl
 experiments/base_lm/runs/qwen25_1_5b/predictions.jsonl
+experiments/sft/runs/qwen25_1_5_sft/predictions.jsonl
+experiments/base_lm/runs/smollm2_1_7b/predictions.jsonl
 data/metrics/qwen25_1_5b_eval_artifacts/
+data/metrics/qwen25_1_5b_sft_eval_artifacts
+data/metrics/smollm2_1_7b_eval_artifacts
 vendor/LlamaFactory/data/train.json
 vendor/LlamaFactory/data/val.json
 vendor/LlamaFactory/data/test.json
