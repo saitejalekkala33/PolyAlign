@@ -19,7 +19,7 @@ SPLIT_PRIORITY = {
     "train": 3,
 }
 
-GROUP_DATASETS = {"coqa", "dailydialog", "multiwoz"}
+GROUP_DATASETS = {"coqa", "dailydialog", "multiwoz", "oasst2_zh"}
 
 
 def _iter_dataset_split_files(input_root: Path):
@@ -70,6 +70,8 @@ def _group_key(dataset_name: str, record: dict[str, Any]) -> str | None:
     meta = record.get("meta", {})
     if dataset_name == "coqa":
         return meta.get("conversation_id")
+    if dataset_name == "oasst2_zh":
+        return meta.get("message_tree_id")
     return meta.get("dialogue_id")
 
 

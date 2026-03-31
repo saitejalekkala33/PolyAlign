@@ -68,6 +68,16 @@ def _cmd_dedup(args) -> None:
     print(json.dumps(report, indent=2, ensure_ascii=False))
 
 
+def _cmd_pipeline(args) -> None:
+    from polyalign_data.pipeline import run_pipeline
+
+    config = _load_json(args.config)
+    if args.overwrite:
+        config["overwrite"] = True
+    summary = run_pipeline(config)
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="PolyAlign dataset preprocessing CLI.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -104,6 +114,14 @@ def build_parser() -> argparse.ArgumentParser:
     dedup_parser.add_argument("--report-path", required=True, help="Output JSON path for the dedup report.")
     dedup_parser.add_argument("--overwrite", action="store_true", help="Overwrite the output root if it already exists.")
     dedup_parser.set_defaults(func=_cmd_dedup)
+
+    pipeline_parser = subparsers.add_parser(
+        "pipeline",
+        help="Run the full preprocessing pipeline: format, formatted summary, dedup, merged SFT views, features, and reference build.",
+    )
+    pipeline_parser.add_argument("--config", required=True, help="Path to a JSON pipeline config file.")
+    pipeline_parser.add_argument("--overwrite", action="store_true", help="Override the config and rebuild all pipeline outputs.")
+    pipeline_parser.set_defaults(func=_cmd_pipeline)
 
     return parser
 

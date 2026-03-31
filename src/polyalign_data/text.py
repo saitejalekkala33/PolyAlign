@@ -3,7 +3,10 @@ from __future__ import annotations
 import re
 
 
-_TOKEN_RE = re.compile(r"\w+|[^\w\s]", re.UNICODE)
+_TOKEN_RE = re.compile(
+    r"[A-Za-z]+(?:'[A-Za-z]+)?|\d+|[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]|[^\w\s]",
+    re.UNICODE,
+)
 
 
 def normalize_text(text: str | None) -> str:

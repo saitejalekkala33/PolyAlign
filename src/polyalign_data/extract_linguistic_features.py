@@ -27,8 +27,13 @@ from polyalign_data.lm_scoring import (
 from polyalign_data.text import normalize_text
 
 
-WORD_RE = re.compile(r"\b[\w']+\b", re.UNICODE)
+WORD_RE = re.compile(
+    r"[A-Za-z]+(?:'[A-Za-z]+)?|\d+|[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]|[^\w\s]",
+    re.UNICODE,
+)
+LEXICAL_RE = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?|\d+|[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", re.UNICODE)
 ALPHA_RE = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?")
+CJK_CHAR_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 URL_RE = re.compile(r"https?://\S+|www\.\S+", re.IGNORECASE)
 EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
 YEAR_RE = re.compile(r"\b(?:1[5-9]\d{2}|20\d{2}|2100)\b")
@@ -38,8 +43,23 @@ ENUM_LINE_RE = re.compile(r"^\s*(?:\d+|[A-Za-z])[.)]\s+", re.MULTILINE)
 ELLIPSIS_RE = re.compile(r"\.\.\.|…")
 REPEATED_CHAR_RE = re.compile(r"(.)\1{2,}")
 
-STOPWORDS = frozenset(stopwords.words("english"))
-VADER = SentimentIntensityAnalyzer()
+
+def _load_stopwords() -> frozenset[str]:
+    try:
+        return frozenset(stopwords.words("english"))
+    except LookupError:
+        return frozenset()
+
+
+def _build_vader() -> SentimentIntensityAnalyzer | None:
+    try:
+        return SentimentIntensityAnalyzer()
+    except LookupError:
+        return None
+
+
+STOPWORDS = _load_stopwords()
+VADER = _build_vader()
 
 
 UNIVERSAL_TAG_FEATURES = (
@@ -89,25 +109,42 @@ def _tokenize_words(text: str) -> list[str]:
     return WORD_RE.findall(text)
 
 
+def _lexical_tokens(text: str) -> list[str]:
+    return LEXICAL_RE.findall(text)
+
+
 def _alphabetic_tokens(text: str) -> list[str]:
     return ALPHA_RE.findall(text)
+
+
+def _contains_cjk(text: str) -> bool:
+    return bool(CJK_CHAR_RE.search(text))
+
+
+def _normalize_lexical_token(token: str) -> str:
+    return token.lower() if ALPHA_RE.fullmatch(token) else token
 
 
 def _split_sentences(text: str) -> list[str]:
     normalized = normalize_text(text)
     if not normalized:
         return []
+    if _contains_cjk(normalized):
+        parts = re.split(r"(?<=[.!?。！？；;])|\n+", normalized)
+        return [part.strip() for part in parts if part.strip()] or [normalized]
     try:
         sentences = [sentence.strip() for sentence in sent_tokenize(normalized) if sentence.strip()]
     except LookupError:
         sentences = []
     if sentences:
         return sentences
-    parts = re.split(r"(?<=[.!?])\s+|\n+", normalized)
+    parts = re.split(r"(?<=[.!?。！？；;])|\n+", normalized)
     return [part.strip() for part in parts if part.strip()] or [normalized]
 
 
 def _word_tokenize_safe(text: str) -> list[str]:
+    if _contains_cjk(text):
+        return _tokenize_words(text)
     try:
         return word_tokenize(text)
     except LookupError:
@@ -180,6 +217,8 @@ def extract_linguistic_features(text: str) -> dict[str, Any]:
     sentences = _split_sentences(normalized)
     sentence_char_lengths = [len(sentence) for sentence in sentences]
     word_tokens = _word_tokenize_safe(normalized)
+    lexical_tokens = _lexical_tokens(normalized)
+    lexical_normalized = [_normalize_lexical_token(token) for token in lexical_tokens]
     alpha_tokens = _alphabetic_tokens(normalized)
     alpha_lower = [token.lower() for token in alpha_tokens]
     sentence_tokens = [_word_tokenize_safe(sentence) for sentence in sentences]
@@ -188,64 +227,94 @@ def extract_linguistic_features(text: str) -> dict[str, Any]:
     pos_counts = _universal_pos_counts(tagged_tokens)
     ptb_counts = Counter(tag for _token, tag in tagged_tokens)
 
-    word_count = len(alpha_lower)
+    word_count = len(lexical_normalized)
     token_count = len(word_tokens)
     sentence_count = len(sentences)
-    unique_count = len(set(alpha_lower))
-    token_counter = Counter(alpha_lower)
+    unique_count = len(set(lexical_normalized))
+    token_counter = Counter(lexical_normalized)
     hapax_count = sum(1 for value in token_counter.values() if value == 1)
     dislegomena_count = sum(1 for value in token_counter.values() if value == 2)
-    bigrams = list(zip(alpha_lower, alpha_lower[1:]))
-    trigrams = list(zip(alpha_lower, alpha_lower[1:], alpha_lower[2:]))
+    bigrams = list(zip(lexical_normalized, lexical_normalized[1:]))
+    trigrams = list(zip(lexical_normalized, lexical_normalized[1:], lexical_normalized[2:]))
     bigram_counter = Counter(bigrams)
     syllables = [_count_syllables(token) for token in alpha_lower]
     total_syllables = sum(syllables)
     multisyllabic_word_count = sum(1 for count in syllables if count >= 3)
-    avg_word_length = _safe_div(sum(len(token) for token in alpha_lower), word_count)
-    avg_syllables_per_word = _safe_div(total_syllables, word_count)
+    avg_word_length = _safe_div(sum(len(token) for token in lexical_normalized), word_count)
+    english_word_count = len(alpha_lower)
+    avg_syllables_per_word = _safe_div(total_syllables, english_word_count)
 
     words_per_sentence = _safe_div(word_count, sentence_count)
-    flesch_reading_ease = 206.835 - (1.015 * words_per_sentence) - (84.6 * avg_syllables_per_word) if word_count else 0.0
-    flesch_kincaid_grade = (0.39 * words_per_sentence) + (11.8 * avg_syllables_per_word) - 15.59 if word_count else 0.0
-    gunning_fog = 0.4 * (words_per_sentence + 100 * _safe_div(multisyllabic_word_count, word_count)) if word_count else 0.0
+    flesch_reading_ease = (
+        206.835 - (1.015 * words_per_sentence) - (84.6 * avg_syllables_per_word) if english_word_count else 0.0
+    )
+    flesch_kincaid_grade = (
+        (0.39 * words_per_sentence) + (11.8 * avg_syllables_per_word) - 15.59 if english_word_count else 0.0
+    )
+    gunning_fog = (
+        0.4 * (words_per_sentence + 100 * _safe_div(multisyllabic_word_count, english_word_count))
+        if english_word_count
+        else 0.0
+    )
     smog_index = (
         1.043 * math.sqrt(multisyllabic_word_count * (30 / sentence_count)) + 3.1291
-        if sentence_count and multisyllabic_word_count
+        if sentence_count and multisyllabic_word_count and english_word_count
         else 0.0
     )
     coleman_liau = (
-        0.0588 * (_safe_div(alphabetic_char_count, word_count) * 100)
-        - 0.296 * (_safe_div(sentence_count, word_count) * 100)
+        0.0588 * (_safe_div(alphabetic_char_count, english_word_count) * 100)
+        - 0.296 * (_safe_div(sentence_count, english_word_count) * 100)
         - 15.8
-        if word_count
+        if english_word_count
         else 0.0
     )
     automated_readability = (
-        4.71 * _safe_div(chars_no_space, word_count) + 0.5 * words_per_sentence - 21.43
-        if word_count
+        4.71 * _safe_div(chars_no_space, english_word_count) + 0.5 * words_per_sentence - 21.43
+        if english_word_count
         else 0.0
     )
 
     stopword_count = sum(1 for token in alpha_lower if token in STOPWORDS)
     content_word_count = sum(pos_counts[tag] for tag in ("ADJ", "ADV", "NOUN", "VERB"))
-    sentiment = VADER.polarity_scores(normalized) if normalized else {"neg": 0.0, "neu": 0.0, "pos": 0.0, "compound": 0.0}
+    sentiment = (
+        VADER.polarity_scores(normalized)
+        if VADER is not None and normalized
+        else {"neg": 0.0, "neu": 0.0, "pos": 0.0, "compound": 0.0}
+    )
 
-    question_mark_count = normalized.count("?")
-    exclamation_mark_count = normalized.count("!")
-    comma_count = normalized.count(",")
-    semicolon_count = normalized.count(";")
-    colon_count = normalized.count(":")
-    period_count = normalized.count(".")
+    question_mark_count = normalized.count("?") + normalized.count("？")
+    exclamation_mark_count = normalized.count("!") + normalized.count("！")
+    comma_count = normalized.count(",") + normalized.count("，")
+    semicolon_count = normalized.count(";") + normalized.count("；")
+    colon_count = normalized.count(":") + normalized.count("：")
+    period_count = normalized.count(".") + normalized.count("。")
     ellipsis_count = len(ELLIPSIS_RE.findall(normalized))
-    quote_count = normalized.count('"') + normalized.count("“") + normalized.count("”") + normalized.count("‘") + normalized.count("’")
+    quote_count = (
+        normalized.count('"')
+        + normalized.count("“")
+        + normalized.count("”")
+        + normalized.count("‘")
+        + normalized.count("’")
+        + normalized.count("「")
+        + normalized.count("」")
+        + normalized.count("『")
+        + normalized.count("』")
+    )
     apostrophe_count = normalized.count("'")
-    hyphen_count = normalized.count("-") + normalized.count("–") + normalized.count("—")
+    hyphen_count = normalized.count("-") + normalized.count("–") + normalized.count("—") + normalized.count("－")
     slash_count = normalized.count("/")
-    parenthesis_count = normalized.count("(") + normalized.count(")")
-    bracket_count = normalized.count("[") + normalized.count("]") + normalized.count("{") + normalized.count("}")
-    sentences_with_question = sum(1 for sentence in sentences if sentence.endswith("?"))
-    sentences_with_exclamation = sum(1 for sentence in sentences if sentence.endswith("!"))
-    sentences_with_terminal = sum(1 for sentence in sentences if sentence and sentence[-1] in ".!?")
+    parenthesis_count = normalized.count("(") + normalized.count(")") + normalized.count("（") + normalized.count("）")
+    bracket_count = (
+        normalized.count("[")
+        + normalized.count("]")
+        + normalized.count("{")
+        + normalized.count("}")
+        + normalized.count("【")
+        + normalized.count("】")
+    )
+    sentences_with_question = sum(1 for sentence in sentences if sentence.endswith(("?", "？")))
+    sentences_with_exclamation = sum(1 for sentence in sentences if sentence.endswith(("!", "！")))
+    sentences_with_terminal = sum(1 for sentence in sentences if sentence and sentence[-1] in ".!?。！？")
     sentence_initial_capitals = sum(1 for sentence in sentences if sentence[:1].isupper())
 
     all_caps_token_count = sum(1 for token in word_tokens if token.isupper() and len(token) > 1)
@@ -258,10 +327,10 @@ def extract_linguistic_features(text: str) -> dict[str, Any]:
     url_count = len(URL_RE.findall(normalized))
     email_count = len(EMAIL_RE.findall(normalized))
 
-    short_word_count = sum(1 for token in alpha_lower if len(token) <= 3)
-    medium_word_count = sum(1 for token in alpha_lower if 4 <= len(token) <= 6)
-    long_word_count = sum(1 for token in alpha_lower if len(token) >= 7)
-    very_long_word_count = sum(1 for token in alpha_lower if len(token) >= 11)
+    short_word_count = sum(1 for token in lexical_normalized if len(token) <= 3)
+    medium_word_count = sum(1 for token in lexical_normalized if 4 <= len(token) <= 6)
+    long_word_count = sum(1 for token in lexical_normalized if len(token) >= 7)
+    very_long_word_count = sum(1 for token in lexical_normalized if len(token) >= 11)
 
     bullet_line_count = len(LIST_BULLET_RE.findall(normalized))
     enumerated_line_count = len(ENUM_LINE_RE.findall(normalized))
@@ -308,12 +377,12 @@ def extract_linguistic_features(text: str) -> dict[str, Any]:
         "corrected_ttr": _safe_div(unique_count, math.sqrt(2 * word_count)) if word_count else 0.0,
         "hapax_ratio": _safe_div(hapax_count, word_count),
         "dislegomena_ratio": _safe_div(dislegomena_count, word_count),
-        "distinct_1": _safe_div(len(set(alpha_lower)), word_count),
+        "distinct_1": _safe_div(len(set(lexical_normalized)), word_count),
         "distinct_2": _safe_div(len(set(bigrams)), len(bigrams)),
         "distinct_3": _safe_div(len(set(trigrams)), len(trigrams)),
         "repeated_token_ratio": _safe_div(sum(value - 1 for value in token_counter.values() if value > 1), word_count),
         "repeated_bigram_ratio": _safe_div(sum(value - 1 for value in bigram_counter.values() if value > 1), len(bigrams)),
-        "adjacent_repeat_count": sum(1 for left, right in zip(alpha_lower, alpha_lower[1:]) if left == right),
+        "adjacent_repeat_count": sum(1 for left, right in zip(lexical_normalized, lexical_normalized[1:]) if left == right),
         "max_token_frequency": max(token_counter.values(), default=0),
         "max_token_frequency_ratio": _safe_div(max(token_counter.values(), default=0), word_count),
         "shannon_entropy": _shannon_entropy(token_counter, word_count),
@@ -357,7 +426,7 @@ def extract_linguistic_features(text: str) -> dict[str, Any]:
         "url_count": url_count,
         "email_count": email_count,
         "stopword_count": stopword_count,
-        "stopword_ratio": _safe_div(stopword_count, word_count),
+        "stopword_ratio": _safe_div(stopword_count, english_word_count),
         "content_word_count": content_word_count,
         "content_word_ratio": _safe_div(content_word_count, token_count),
         "lexical_density": _safe_div(content_word_count, max(1, stopword_count + content_word_count)),
