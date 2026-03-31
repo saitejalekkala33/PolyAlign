@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 from typing import Any
 
-from polyalign_data.io_utils import ensure_dir, write_json, write_jsonl
+from polyalign_data.io_utils import ensure_dir, read_json, write_json, write_jsonl
 
 
 class DatasetFormatter(ABC):
@@ -42,10 +42,14 @@ class DatasetFormatter(ABC):
 
     def write(self, output_root: str | Path, overwrite: bool = False) -> dict[str, Any]:
         dataset_dir = Path(output_root) / self.dataset_name
+        manifest_path = dataset_dir / "manifest.json"
         if dataset_dir.exists() and any(dataset_dir.iterdir()) and not overwrite:
-            raise FileExistsError(
-                f"{dataset_dir} already contains files. Pass overwrite=True to replace them."
-            )
+            if manifest_path.exists():
+                existing_manifest = read_json(manifest_path)
+                existing_manifest["status"] = "skipped"
+                existing_manifest["output_dir"] = str(dataset_dir)
+                return existing_manifest
+            shutil.rmtree(dataset_dir)
         if dataset_dir.exists() and overwrite:
             shutil.rmtree(dataset_dir)
         ensure_dir(dataset_dir)
@@ -53,5 +57,7 @@ class DatasetFormatter(ABC):
         for split, records in split_records.items():
             write_jsonl(dataset_dir / f"{split}.jsonl", records)
         manifest = self.build_manifest(split_records)
+        manifest["status"] = "written"
+        manifest["output_dir"] = str(dataset_dir)
         write_json(dataset_dir / "manifest.json", manifest)
         return manifest

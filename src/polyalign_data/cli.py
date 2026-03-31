@@ -34,10 +34,20 @@ def _cmd_format(args) -> None:
     overwrite = args.overwrite or config.get("overwrite", False)
 
     manifests = []
-    for dataset_name in datasets:
+    total = len(datasets)
+    for index, dataset_name in enumerate(datasets, start=1):
+        print(f"[{index}/{total}] {dataset_name}: starting", flush=True)
         formatter = create_formatter(dataset_name, seed=seed, cache_dir=cache_dir)
         manifest = formatter.write(output_root, overwrite=overwrite)
         manifests.append(manifest)
+        split_counts = manifest.get("split_counts", {})
+        counts_summary = ", ".join(f"{split}={count}" for split, count in split_counts.items())
+        status = manifest.get("status", "written")
+        if status == "skipped":
+            print(f"[{index}/{total}] {dataset_name}: skipped", flush=True)
+        else:
+            suffix = f" ({counts_summary})" if counts_summary else ""
+            print(f"[{index}/{total}] {dataset_name}: done{suffix}", flush=True)
 
     print(json.dumps({"output_root": output_root, "datasets": manifests}, indent=2, ensure_ascii=False))
 

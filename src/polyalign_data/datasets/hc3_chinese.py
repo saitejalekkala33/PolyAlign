@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from datasets import load_dataset
-
 from polyalign_data.datasets.base import DatasetFormatter
 from polyalign_data.datasets.helpers import non_empty_texts
+from polyalign_data.remote import hf_dataset_file, load_jsonl
 from polyalign_data.schema import build_record
 from polyalign_data.splits import choose_split
 
@@ -21,17 +20,21 @@ class HC3ChineseFormatter(DatasetFormatter):
         return {"config": self.config_name}
 
     def build_split_records(self) -> dict[str, list[dict]]:
-        dataset = load_dataset(self.source_name, self.config_name, split="train")
+        dataset = load_jsonl(hf_dataset_file(self.source_name, "all.jsonl"))
         outputs = {"train": [], "dev": [], "test": []}
-        for row in dataset:
+        for row_index, row in enumerate(dataset):
+            row_id = str(row.get("id", row_index))
+            question = row.get("question", "")
+            if not question:
+                continue
             split = choose_split(
-                f"{row.get('source', '')}::{row['id']}",
+                f"{row.get('source', '')}::{row_id}",
                 self.seed,
                 [("train", 0.90), ("dev", 0.05), ("test", 0.05)],
             )
             human_answers = non_empty_texts(row.get("human_answers", []))
             for answer_index, human_answer in enumerate(human_answers):
-                source_id = f"hc3-chinese-{row.get('source', 'all')}-{row['id']}-answer-{answer_index:02d}"
+                source_id = f"hc3-chinese-{row.get('source', 'all')}-{row_id}-answer-{answer_index:02d}"
                 outputs[split].append(
                     build_record(
                         example_id=source_id,
@@ -41,7 +44,7 @@ class HC3ChineseFormatter(DatasetFormatter):
                         track="single",
                         family="qa",
                         style_bucket="longform_qa",
-                        question=row["question"],
+                        question=question,
                         context="",
                         dialogue_history=[],
                         human_answer=human_answer,
@@ -49,7 +52,7 @@ class HC3ChineseFormatter(DatasetFormatter):
                             "source_dataset": self.source_name,
                             "source_config": self.config_name,
                             "source_split": "train",
-                            "source_id": row["id"],
+                            "source_id": row_id,
                             "source_subset": row.get("source", ""),
                             "human_answer_index": answer_index,
                             "num_human_answers": len(human_answers),

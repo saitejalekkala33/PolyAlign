@@ -1,11 +1,11 @@
 {
   "datasets": [
     "oasst2_zh",
-    "dureader",
     "cmrc2018",
     "drcd",
-    "hc3_chinese",
-    "coig_cqia"
+    "coig_cqia",
+    "dureader",
+    "hc3_chinese"
   ],
   "output_root": "data/chinese/formatted",
   "cache_dir": "data/cache",
