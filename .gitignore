@@ -11,3 +11,5 @@ data/metrics/qwen25_1_5b_eval_artifacts/
 vendor/LlamaFactory/data/train.json
 vendor/LlamaFactory/data/val.json
 vendor/LlamaFactory/data/test.json
+models/
+data/chinese/

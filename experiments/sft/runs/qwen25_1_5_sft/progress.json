@@ -1,9 +1,9 @@
 {
-  "status": "running",
+  "status": "completed",
   "records_total": 51480,
   "records_scheduled": 51480,
-  "records_completed": 13596,
-  "elapsed_seconds": 948.653,
-  "predictions_path": "experiments/sft/runs/qwen25_1_5_sft/predictions.jsonl",
-  "batch_size": 1
+  "records_completed": 51480,
+  "elapsed_seconds": 2899.375,
+  "predictions_path": "/home/umair_nawaz/TW/PolyAlign/experiments/sft/runs/qwen25_1_5_sft/predictions.jsonl",
+  "batch_size": 4
 }
