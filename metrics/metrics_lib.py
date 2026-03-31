@@ -805,15 +805,13 @@ def summarize_aggregate(
     bng_score = _bounded_geometric_mean(
         np.array([_normalize_global_metric_series(pd.Series([raw_bng_macro]), metric_name="bng").iloc[0]], dtype=float)
     )
-    c_mauve_macro = mauve_summary.get("overall_macro", math.nan)
-    if not math.isfinite(c_mauve_macro):
-        c_mauve_macro = mauve_summary.get("global", math.nan)
+    mauve_global = mauve_summary.get("global", math.nan)
     nuf_hypervolume = nuf_summary.get("overall", {}).get("hypervolume", math.nan)
 
     normalized_components = {
         "qa_f1": _bounded_geometric_mean(np.array([qa_f1], dtype=float)),
         "bng_score": bng_score,
-        "c_mauve": _bounded_geometric_mean(np.array([c_mauve_macro], dtype=float)),
+        "mauve_global": _bounded_geometric_mean(np.array([mauve_global], dtype=float)),
         "nuf_hypervolume": _bounded_geometric_mean(np.array([nuf_hypervolume], dtype=float)),
     }
     valid_values = [value for value in normalized_components.values() if math.isfinite(value)]
@@ -825,7 +823,7 @@ def summarize_aggregate(
         "raw_metrics": {
             "qa_f1": qa_f1,
             "bng_macro": raw_bng_macro,
-            "c_mauve": c_mauve_macro,
+            "mauve_global": mauve_global,
             "nuf_hypervolume": nuf_hypervolume,
         },
         "components": normalized_components,

@@ -8,3 +8,6 @@ polyalign_data.egg-info/
 data/reference_artifacts/**/*.jsonl
 experiments/base_lm/runs/qwen25_1_5b/predictions.jsonl
 data/metrics/qwen25_1_5b_eval_artifacts/
+vendor/LlamaFactory/data/train.json
+vendor/LlamaFactory/data/val.json
+vendor/LlamaFactory/data/test.json

@@ -8,7 +8,8 @@ It produces one JSON report covering:
 - diversity metrics: Distinct-1/2/3 and Self-BLEU-4
 - naturalness metrics: BNG, HCR, global MAUVE, conditional MAUVE
 - multi-turn dynamics: non-heuristic TDM based on continuous turn coupling and latent transition structure
-- NUF summaries and Pareto frontier outputs
+- NUF summaries with fixed-scale hypervolume outputs
+- an overall aggregate score built from fixed-scale normalized primitives
 
 ## Inputs
 
@@ -39,5 +40,9 @@ python -m metrics \
 ## Notes
 
 - By default, prediction-side LM features are computed with the same research model alias used for the human feature files.
+- If prediction feature artifacts already exist in the work directory, they are reused directly and `generated_current_records.jsonl` is not required for that run.
+- Prediction and human feature artifacts can be reused from either `.jsonl` or `.csv`.
 - MAUVE requires `mauve-text`.
 - For BNG, the default reference source is the aligned human test feature file. Pass `--bng-reference-source feature_matrix` to use `feature_matrix.jsonl` instead.
+- The report now includes `metrics.nuf.overall.hypervolume`, `metrics.nuf.multi_turn.hypervolume`, and `metrics.aggregate.overall`.
+- `metrics.aggregate.overall` now uses `mauve.global` rather than `C-MAUVE`.
