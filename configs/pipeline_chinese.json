@@ -1,0 +1,25 @@
+{
+  "datasets": [
+    "oasst2_zh",
+    "dureader",
+    "cmrc2018",
+    "drcd",
+    "hc3_chinese",
+    "coig_cqia"
+  ],
+  "cache_dir": "data/cache",
+  "seed": 42,
+  "overwrite": false,
+  "format_output_root": "data/chinese/formatted",
+  "dedup_output_root": "data/chinese/formatted_dedup",
+  "dedup_report_path": "data/chinese/reports/dedup_report.json",
+  "merged_output_root": "data/chinese/merged_sft_dedup",
+  "features_output_root": "data/chinese/features",
+  "feature_text_field": "human_answer",
+  "feature_include_text": false,
+  "feature_write_csv": false,
+  "reference_output_root": "data/chinese/reference_artifacts",
+  "prior_reference_filename": "prior-reference_summary.json",
+  "reference_min_bucket_size": 20,
+  "pipeline_summary_path": "data/chinese/reports/pipeline_summary.json"
+}
