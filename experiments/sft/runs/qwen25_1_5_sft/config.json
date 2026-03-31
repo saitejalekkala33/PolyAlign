@@ -1,0 +1,19 @@
+{
+  "input_path": "/vast/users/muhammad.haris/ufaq/PolyAlign/vendor/LlamaFactory/data/test.json",
+  "output_dir": "experiments/sft/runs/qwen25_1_5_sft",
+  "checkpoint_path": "/vast/users/muhammad.haris/ufaq/PolyAlign/vendor/LlamaFactory/saves/qwen2_5-1_5b/full/sft/polyalign",
+  "model_name": "polyalign",
+  "tokenizer_name_or_path": "/vast/users/muhammad.haris/ufaq/PolyAlign/vendor/LlamaFactory/saves/qwen2_5-1_5b/full/sft/polyalign",
+  "hip_visible_devices": "0,1,2,3,4,5,6,7",
+  "device_map": "auto",
+  "dtype": "bfloat16",
+  "attn_implementation": "auto",
+  "sample_size": 0,
+  "sample_mode": "first",
+  "max_input_length": 4096,
+  "max_tokens": 1024,
+  "temperature": 0.0,
+  "top_p": 1.0,
+  "batch_size": 1,
+  "resume": true
+}
