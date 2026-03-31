@@ -1,0 +1,14 @@
+{
+  "input_path": "data/merged_sft_dedup/llamafactory/test.json",
+  "output_dir": "experiments/base_lm/runs/smollm2_1_7b",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "records_remaining": 0,
+  "model_name": "HuggingFaceTB/SmolLM2-1.7B",
+  "base_url": "http://127.0.0.1:8000",
+  "predictions_path": "experiments/base_lm/runs/smollm2_1_7b/predictions.jsonl",
+  "elapsed_seconds": 10379.957,
+  "batch_size": 4,
+  "resume": true
+}
