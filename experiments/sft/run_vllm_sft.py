@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,8 @@ from urllib import error, request
 
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer
+
+DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant. Answer the user's question directly and briefly using the provided context when relevant. Do not repeat yourself. Do not restate the question. Stop after the answer."
 
 
 def ensure_dir(path: Path) -> None:
@@ -53,9 +56,8 @@ def build_user_message(example: dict[str, Any]) -> str:
 def build_messages(example: dict[str, Any]) -> list[dict[str, str]]:
     messages: list[dict[str, str]] = []
 
-    system_text = str(example.get("system", "")).strip()
-    if system_text:
-        messages.append({"role": "system", "content": system_text})
+    system_text = str(example.get("system", "")).strip() or DEFAULT_SYSTEM_PROMPT
+    messages.append({"role": "system", "content": system_text})
 
     history = example.get("history") or []
     for turn in history:
@@ -113,6 +115,59 @@ def load_completed_indices(predictions_path: Path) -> set[int]:
     return completed
 
 
+def clean_prediction(text: str) -> str:
+    if not isinstance(text, str):
+        return text
+
+    text = text.strip().replace("\r\n", "\n").replace("\r", "\n")
+
+    cut_markers = [
+        "<|im_end|>",
+        "<|endoftext|>",
+        "\n<|im_start|>",
+        "\nQuestion:",
+        "\nUser:",
+        "\nAssistant:",
+    ]
+    cut_positions = [text.find(marker) for marker in cut_markers if text.find(marker) != -1]
+    if cut_positions:
+        text = text[:min(cut_positions)]
+
+    text = text.strip()
+
+    if text.startswith("Answer:"):
+        text = text[len("Answer:"):].strip()
+
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    filtered_lines: list[str] = []
+    bad_starts = (
+        "<|im_start|>",
+        "<|im_end|>",
+        "Question:",
+        "User:",
+        "Assistant:",
+    )
+    for line in lines:
+        if line.startswith(bad_starts):
+            continue
+        filtered_lines.append(line)
+
+    text = "\n".join(filtered_lines).strip()
+
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    deduped: list[str] = []
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        if deduped and sentence == deduped[-1]:
+            continue
+        deduped.append(sentence)
+
+    text = " ".join(deduped).strip()
+    return text
+
+
 def call_vllm_completion_batch(
     *,
     base_url: str,
@@ -123,6 +178,10 @@ def call_vllm_completion_batch(
     temperature: float,
     top_p: float,
     timeout: float,
+    repetition_penalty: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    stop: list[str] | None = None,
     extra_body: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
@@ -132,6 +191,10 @@ def call_vllm_completion_batch(
         "temperature": temperature,
         "top_p": top_p,
         "n": 1,
+        "repetition_penalty": repetition_penalty,
+        "frequency_penalty": frequency_penalty,
+        "presence_penalty": presence_penalty,
+        "stop": stop or [],
     }
     if extra_body:
         payload.update(extra_body)
@@ -246,11 +309,23 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         "max_tokens": args.max_tokens,
         "temperature": args.temperature,
         "top_p": args.top_p,
+        "repetition_penalty": args.repetition_penalty,
+        "frequency_penalty": args.frequency_penalty,
+        "presence_penalty": args.presence_penalty,
         "timeout": args.timeout,
         "batch_size": args.batch_size,
         "resume": args.resume,
     }
     write_json(config_path, config)
+
+    stop_sequences = [
+        "<|im_end|>",
+        "<|endoftext|>",
+        "\n<|im_start|>",
+        "\nQuestion:",
+        "\nUser:",
+        "\nAssistant:",
+    ]
 
     started = time.time()
     already_completed = len(sampled) - len(remaining)
@@ -285,13 +360,17 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
                 temperature=args.temperature,
                 top_p=args.top_p,
                 timeout=args.timeout,
+                repetition_penalty=args.repetition_penalty,
+                frequency_penalty=args.frequency_penalty,
+                presence_penalty=args.presence_penalty,
+                stop=stop_sequences,
             )
             choice_map = extract_choice_map(response, len(batch))
             batch_usage = response.get("usage", {})
 
             for batch_index, (source_index, example) in enumerate(batch):
                 choice = choice_map.get(batch_index, {})
-                prediction = (choice.get("text") or "").strip()
+                prediction = clean_prediction(choice.get("text") or "")
                 row = {
                     "source_index": source_index,
                     "instruction": example.get("instruction", ""),
@@ -373,8 +452,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--seed", type=int, default=42, help="Retained for CLI compatibility; unused when sample-mode=first.")
     parser.add_argument("--max-tokens", type=int, default=128, help="Maximum new tokens per completion request.")
-    parser.add_argument("--temperature", type=float, default=0.0, help="Sampling temperature sent to vLLM.")
-    parser.add_argument("--top-p", type=float, default=1.0, help="top_p sent to vLLM.")
+    parser.add_argument("--temperature", type=float, default=0.2, help="Sampling temperature sent to vLLM.")
+    parser.add_argument("--top-p", type=float, default=0.95, help="top_p sent to vLLM.")
+    parser.add_argument("--repetition-penalty", type=float, default=1.12, help="Penalize repeated tokens.")
+    parser.add_argument("--frequency-penalty", type=float, default=0.2, help="Penalize repeated words.")
+    parser.add_argument("--presence-penalty", type=float, default=0.0, help="Penalty for already-seen tokens.")
     parser.add_argument("--timeout", type=float, default=300.0, help="HTTP timeout in seconds per request.")
     parser.add_argument("--batch-size", type=int, default=4, help="Number of prompts per vLLM completion request.")
     parser.add_argument("--trust-remote-code", action="store_true", help="Pass trust_remote_code=True to AutoTokenizer.")

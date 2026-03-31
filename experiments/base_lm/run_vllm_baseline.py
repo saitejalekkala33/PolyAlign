@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import random
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -37,6 +38,7 @@ def load_records(path: Path) -> list[dict[str, Any]]:
 
 def build_prompt(example: dict[str, Any]) -> str:
     parts: list[str] = []
+
     history = example.get("history") or []
     if history:
         history_lines = []
@@ -60,7 +62,7 @@ def build_prompt(example: dict[str, Any]) -> str:
     if instruction:
         parts.append("Question:\n" + instruction)
 
-    parts.append("Answer:\n")
+    parts.append("Answer:")
     return "\n\n".join(parts)
 
 
@@ -86,7 +88,7 @@ def chunked(items: list[tuple[int, dict[str, Any]]], size: int):
     if size <= 0:
         raise ValueError("batch_size must be > 0")
     for index in range(0, len(items), size):
-        yield items[index : index + size]
+        yield items[index:index + size]
 
 
 def load_completed_indices(predictions_path: Path) -> set[int]:
@@ -100,6 +102,73 @@ def load_completed_indices(predictions_path: Path) -> set[int]:
     return completed
 
 
+def clean_prediction(text: str) -> str:
+    if not isinstance(text, str):
+        return text
+
+    text = text.strip()
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = text.replace("\n> ", "\n").replace("> ", "")
+
+    fenced = re.search(r"```(?:[a-zA-Z0-9_+-]+)?\n(.*?)```", text, flags=re.DOTALL)
+    if fenced:
+        text = fenced.group(1).strip()
+
+    if "Assistant:" in text:
+        text = text.split("Assistant:", 1)[1].strip()
+
+    if "Answer:" in text:
+        text = text.split("Answer:", 1)[1].strip()
+
+    stop_markers = [
+        "\nQuestion:",
+        "\nUser:",
+        "\nAssistant:",
+        "\nExplanation:",
+        "\nOutput:",
+        "\n```",
+        "\n#",
+        "\n##",
+    ]
+    cut_positions = [text.find(marker) for marker in stop_markers if text.find(marker) != -1]
+    if cut_positions:
+        text = text[:min(cut_positions)].strip()
+
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    filtered: list[str] = []
+    bad_prefixes = (
+        "The assistant should",
+        "The correct output should",
+        "The answer should",
+        "Output:",
+        "Explanation:",
+        "Question:",
+        "Answer:",
+        "User:",
+        "Assistant:",
+        "#",
+        "##",
+    )
+
+    for line in lines:
+        if line.startswith(bad_prefixes):
+            continue
+        if line in {"```", "Output", "Explanation"}:
+            continue
+        filtered.append(line)
+
+    if filtered:
+        text = filtered[0]
+    elif lines:
+        text = lines[0]
+    else:
+        text = ""
+
+    text = text.strip("`").strip()
+    text = re.sub(r'^(["\'])(.*)\1$', r"\2", text).strip()
+    return text
+
+
 def call_vllm_completion_batch(
     *,
     base_url: str,
@@ -110,6 +179,10 @@ def call_vllm_completion_batch(
     temperature: float,
     top_p: float,
     timeout: float,
+    repetition_penalty: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    stop: list[str] | None = None,
     extra_body: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
@@ -119,6 +192,10 @@ def call_vllm_completion_batch(
         "temperature": temperature,
         "top_p": top_p,
         "n": 1,
+        "repetition_penalty": repetition_penalty,
+        "frequency_penalty": frequency_penalty,
+        "presence_penalty": presence_penalty,
+        "stop": stop or [],
     }
     if extra_body:
         payload.update(extra_body)
@@ -221,11 +298,30 @@ def run_baseline_inference(args: argparse.Namespace) -> dict[str, Any]:
         "max_tokens": args.max_tokens,
         "temperature": args.temperature,
         "top_p": args.top_p,
+        "repetition_penalty": args.repetition_penalty,
+        "frequency_penalty": args.frequency_penalty,
+        "presence_penalty": args.presence_penalty,
         "timeout": args.timeout,
         "batch_size": args.batch_size,
         "resume": args.resume,
     }
     write_json(config_path, config)
+
+    stop_sequences = [
+        "\nQuestion:",
+        "\n\nQuestion:",
+        "\nUser:",
+        "\n\nUser:",
+        "\nAssistant:",
+        "\n\nAssistant:",
+        "\nExplanation:",
+        "\n\nExplanation:",
+        "\nOutput:",
+        "\n\nOutput:",
+        "\n```",
+        "\n#",
+        "\n##",
+    ]
 
     started = time.time()
     already_completed = len(sampled) - len(remaining)
@@ -260,13 +356,17 @@ def run_baseline_inference(args: argparse.Namespace) -> dict[str, Any]:
                 temperature=args.temperature,
                 top_p=args.top_p,
                 timeout=args.timeout,
+                repetition_penalty=args.repetition_penalty,
+                frequency_penalty=args.frequency_penalty,
+                presence_penalty=args.presence_penalty,
+                stop=stop_sequences,
             )
             choice_map = extract_choice_map(response, len(batch))
             batch_usage = response.get("usage", {})
 
             for batch_index, (source_index, example) in enumerate(batch):
                 choice = choice_map.get(batch_index, {})
-                prediction = (choice.get("text") or "").strip()
+                prediction = clean_prediction(choice.get("text") or "")
                 row = {
                     "source_index": source_index,
                     "instruction": example.get("instruction", ""),
@@ -341,9 +441,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Take the first N examples or a deterministic random sample.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Sampling seed used when --sample-mode=random.")
-    parser.add_argument("--max-tokens", type=int, default=128, help="Maximum new tokens per completion request.")
-    parser.add_argument("--temperature", type=float, default=0.0, help="Sampling temperature sent to vLLM.")
-    parser.add_argument("--top-p", type=float, default=1.0, help="top_p sent to vLLM.")
+    parser.add_argument("--max-tokens", type=int, default=48, help="Maximum new tokens per completion request.")
+    parser.add_argument("--temperature", type=float, default=0.1, help="Sampling temperature sent to vLLM.")
+    parser.add_argument("--top-p", type=float, default=0.9, help="top_p sent to vLLM.")
+    parser.add_argument("--repetition-penalty", type=float, default=1.1, help="Penalize repeated tokens.")
+    parser.add_argument("--frequency-penalty", type=float, default=0.1, help="Penalize frequent tokens.")
+    parser.add_argument("--presence-penalty", type=float, default=0.0, help="Penalize already-seen tokens.")
     parser.add_argument("--timeout", type=float, default=300.0, help="HTTP timeout in seconds per request.")
     parser.add_argument("--batch-size", type=int, default=4, help="Number of prompts per vLLM completion request.")
     parser.add_argument("--resume", action="store_true", help="Resume from an existing predictions.jsonl in output-dir.")
