@@ -17,3 +17,6 @@ vendor/LlamaFactory/data/val.json
 vendor/LlamaFactory/data/test.json
 models/
 data/chinese/
+/experiments/base_lm/runs/**/predictions.jsonl
+/experiments/sft/runs/**/predictions.jsonl
+/experiments/rl/runs/**/predictions.jsonl

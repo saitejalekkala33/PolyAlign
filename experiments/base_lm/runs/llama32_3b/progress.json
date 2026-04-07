@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "elapsed_seconds": 8523.764,
+  "predictions_path": "/home/umair/TW/PolyAlign/experiments/base_lm/runs/llama32_3b/predictions.jsonl",
+  "batch_size": 4
+}

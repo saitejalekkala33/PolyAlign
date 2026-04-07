@@ -1,0 +1,14 @@
+{
+  "input_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/test.json",
+  "output_dir": "/home/umair/TW/PolyAlign/experiments/base_lm/runs/llama32_3b",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "records_remaining": 0,
+  "model_name": "llama32_3b",
+  "base_url": "http://127.0.0.1:8003",
+  "predictions_path": "/home/umair/TW/PolyAlign/experiments/base_lm/runs/llama32_3b/predictions.jsonl",
+  "elapsed_seconds": 8523.763,
+  "batch_size": 4,
+  "resume": true
+}

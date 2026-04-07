@@ -1,0 +1,20 @@
+{
+  "input_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/train.json",
+  "output_dir": "/home/umair/TW/PolyAlign/experiments/sft/runs/qwen25_1_5_sft_train",
+  "base_url": "http://127.0.0.1:8000",
+  "model_name": "qwen25_1_5_sft-val",
+  "tokenizer_name_or_path": "/home/umair/TW/PolyAlign/models/qwen25_1_5_sft",
+  "trust_remote_code": true,
+  "sample_size": 0,
+  "sample_mode": "first",
+  "seed": 42,
+  "max_tokens": 2048,
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "repetition_penalty": 1.12,
+  "frequency_penalty": 0.2,
+  "presence_penalty": 0.0,
+  "timeout": 300.0,
+  "batch_size": 4,
+  "resume": true
+}

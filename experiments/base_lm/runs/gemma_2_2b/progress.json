@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "elapsed_seconds": 9806.422,
+  "predictions_path": "/home/umair/TW/PolyAlign/experiments/base_lm/runs/gemma_2_2b/predictions.jsonl",
+  "batch_size": 4
+}
