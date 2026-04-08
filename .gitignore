@@ -20,3 +20,6 @@ data/chinese/
 /experiments/base_lm/runs/**/predictions.jsonl
 /experiments/sft/runs/**/predictions.jsonl
 /experiments/rl/runs/**/predictions.jsonl
+vendor/LlamaFactory/data/
+data/english
+data/metrics/*/

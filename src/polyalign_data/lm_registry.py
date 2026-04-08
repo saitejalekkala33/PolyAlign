@@ -36,6 +36,12 @@ RESEARCH_MODELS: dict[str, ResearchModelSpec] = {
         family="gemma2",
         parameter_scale="2B",
     ),
+    "gemma_2_2b": ResearchModelSpec(
+        alias="gemma_2_2b",
+        model_id="google/gemma-2-2b",
+        family="gemma2",
+        parameter_scale="2B",
+    ),
     "llama32_3b": ResearchModelSpec(
         alias="llama32_3b",
         model_id="meta-llama/Llama-3.2-3B",

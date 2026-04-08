@@ -1,9 +1,0 @@
-{
-  "status": "running",
-  "records_total": 584422,
-  "records_scheduled": 584422,
-  "records_completed": 440940,
-  "elapsed_seconds": 86409.311,
-  "predictions_path": "/home/umair/TW/PolyAlign/experiments/sft/runs/qwen25_1_5_sft_train/predictions.jsonl",
-  "batch_size": 4
-}
