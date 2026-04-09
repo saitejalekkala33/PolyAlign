@@ -1,11 +1,11 @@
 {
   "config": {
-    "test_lf_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/test.json",
-    "predictions_path": "/home/umair/TW/PolyAlign/experiments/base_lm/runs/qwen25_3b/predictions.jsonl",
-    "current_test_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/merged_sft_dedup/current/test.jsonl",
+    "test_lf_path": "/home/umair/TW/PolyAlign/data/english/merged_sft_dedup/llamafactory/test.json",
+    "predictions_path": "/home/umair/TW/PolyAlign/data/english/merged_sft_dedup/runs/qwen25_3b/predictions.jsonl",
+    "current_test_path": "/home/umair/TW/PolyAlign/data/english/merged_sft_dedup/current/test.jsonl",
     "human_feature_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25_3b_eval_artifacts/human_test_features_qwen25_3b.jsonl",
-    "bucket_references_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/reference_artifacts/bucket_references.json",
-    "feature_matrix_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/reference_artifacts/feature_matrix.jsonl",
+    "bucket_references_path": "/home/umair/TW/PolyAlign/data/english/reference_artifacts/qwen25_3b/bucket_references.json",
+    "feature_matrix_path": "/home/umair/TW/PolyAlign/data/english/reference_artifacts/qwen25_3b/feature_matrix.jsonl",
     "output_json_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25_3b_eval.json",
     "work_dir": "/home/umair/TW/PolyAlign/data/metrics/qwen25_3b_eval_artifacts",
     "model_alias": "qwen25_3b",
@@ -44,12 +44,12 @@
     "current_history_mismatches": 0
   },
   "artifacts": {
-    "generated_records_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25_3b_eval_artifacts/generated_current_records.jsonl",
-    "generated_records_status": "created",
+    "generated_records_path": null,
+    "generated_records_status": "not_required",
     "prediction_feature_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25_3b_eval_artifacts/prediction_features_qwen25_3b.jsonl",
-    "prediction_feature_status": "created",
+    "prediction_feature_status": "reused",
     "human_feature_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25_3b_eval_artifacts/human_test_features_qwen25_3b.jsonl",
-    "human_feature_status": "created",
+    "human_feature_status": "reused",
     "shared_feature_count": 177,
     "shared_feature_names": [
       "adjacent_repeat_count",
@@ -656,92 +656,92 @@
     },
     "hcr": {
       "support_region": "support_q10_q90",
-      "overall_macro": 0.0,
-      "overall_weighted": 0.0,
+      "overall_macro": 0.03399904427575715,
+      "overall_weighted": 0.15078285869691907,
       "by_bucket": [
         {
           "bucket_id": "en|multi|dialogue|medium",
           "n_examples": 167,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.4885483270746643
+          "mean_feature_inside_rate": 0.5109780439121757
         },
         {
           "bucket_id": "en|multi|dialogue|short",
           "n_examples": 10874,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.5680174240322378
+          "mean_feature_inside_rate": 0.5860784393187918
         },
         {
           "bucket_id": "en|multi|qa|short",
           "n_examples": 7983,
           "n_features": 177,
-          "hcr": 0.0,
-          "mean_feature_inside_rate": 0.704683186234024
+          "hcr": 0.014155079544031066,
+          "mean_feature_inside_rate": 0.7073541161974846
         },
         {
           "bucket_id": "en|single|assistant|long",
           "n_examples": 79,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.608453121647715
+          "mean_feature_inside_rate": 0.6404920260316098
         },
         {
           "bucket_id": "en|single|assistant|medium",
           "n_examples": 246,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.6876349271967295
+          "mean_feature_inside_rate": 0.7106471912176748
         },
         {
           "bucket_id": "en|single|assistant|short",
           "n_examples": 390,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.7953063885267275
+          "mean_feature_inside_rate": 0.8031725336810085
         },
         {
           "bucket_id": "en|single|assistant|xlong",
           "n_examples": 42,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.5512510088781275
+          "mean_feature_inside_rate": 0.5815173527037933
         },
         {
           "bucket_id": "en|single|qa|long",
           "n_examples": 3314,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.6006549853557412
+          "mean_feature_inside_rate": 0.6280835626293519
         },
         {
           "bucket_id": "en|single|qa|medium",
           "n_examples": 6191,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.7068635261501341
+          "mean_feature_inside_rate": 0.7361205029717824
         },
         {
           "bucket_id": "en|single|qa|short",
           "n_examples": 21257,
           "n_features": 177,
-          "hcr": 0.0,
-          "mean_feature_inside_rate": 0.9385470628618449
+          "hcr": 0.3598344074892976,
+          "mean_feature_inside_rate": 0.9416266731942606
         },
         {
           "bucket_id": "en|single|qa|xlong",
           "n_examples": 935,
           "n_features": 177,
           "hcr": 0.0,
-          "mean_feature_inside_rate": 0.5540529925375389
+          "mean_feature_inside_rate": 0.5818483942113054
         }
       ]
     },
     "mauve": {
       "global": 0.5587002850359152,
-      "overall_macro": 0.6068773480073617,
-      "overall_weighted": 0.5675417443577929,
+      "overall_macro": 0.6068319015585293,
+      "overall_weighted": 0.5674642201919099,
       "by_bucket": [
         {
           "bucket_id": "en|multi|dialogue|medium",
@@ -756,7 +756,7 @@
         {
           "bucket_id": "en|multi|qa|short",
           "n_examples": 7983,
-          "c_mauve": 0.49970032078999915
+          "c_mauve": 0.499200409852842
         },
         {
           "bucket_id": "en|single|assistant|long",
@@ -809,9 +809,9 @@
           "n_examples": 167,
           "length_ratio_similarity": 0.5704717806856171,
           "lexical_accommodation_similarity": 0.5087970878149274,
-          "semantic_coupling_similarity": 0.40403724940894903,
+          "semantic_coupling_similarity": 0.40403724940894936,
           "latent_transition_similarity": 0.4980269562970924,
-          "tdm": 0.4953332685516465
+          "tdm": 0.4953332685516466
         },
         {
           "bucket_id": "en|multi|dialogue|short",
@@ -827,9 +827,9 @@
           "n_examples": 7983,
           "length_ratio_similarity": 0.6500772268114877,
           "lexical_accommodation_similarity": 0.7095341402262163,
-          "semantic_coupling_similarity": 0.8168364888438702,
+          "semantic_coupling_similarity": 0.8168364888438698,
           "latent_transition_similarity": 0.5326719225054413,
-          "tdm": 0.6772799445967539
+          "tdm": 0.6772799445967537
         }
       ],
       "method": "continuous_latent_turn_dynamics"
@@ -838,9 +838,9 @@
       "core": {
         "frontier_auc": NaN,
         "loadings": {
-          "bng": 0.7071067811865474,
-          "hcr": -0.0,
-          "c_mauve": 0.7071067811865477
+          "bng": 0.599893740607677,
+          "hcr": 0.49916613616223005,
+          "c_mauve": 0.625268477126905
         },
         "frontier_points": [
           {
@@ -868,11 +868,11 @@
             "bng": 2.0948520953444913,
             "hcr": 0.0,
             "c_mauve": 0.9930546152888989,
-            "tdm": 0.4953332685516465,
+            "tdm": 0.4953332685516466,
             "signed__bng": -2.0948520953444913,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.9930546152888989,
-            "naturalness_index": 0.9953340601398447
+            "naturalness_index": 0.6512003570555147
           },
           {
             "bucket_id": "en|multi|dialogue|short",
@@ -884,19 +884,19 @@
             "signed__bng": -1.2445819963532163,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.1714586356172134,
-            "naturalness_index": 0.5591285506866971
+            "naturalness_index": 0.3582028074279289
           },
           {
             "bucket_id": "en|multi|qa|short",
             "utility_qa_f1": 0.11757603281520732,
             "bng": 1.2509720357992826,
-            "hcr": 0.0,
-            "c_mauve": 0.49970032078999915,
-            "tdm": 0.6772799445967539,
+            "hcr": 0.014155079544031066,
+            "c_mauve": 0.499200409852842,
+            "tdm": 0.6772799445967537,
             "signed__bng": -1.2509720357992826,
-            "signed__hcr": 0.0,
-            "signed__c_mauve": 0.49970032078999915,
-            "naturalness_index": 0.7426269643051829
+            "signed__hcr": 0.014155079544031066,
+            "signed__c_mauve": 0.499200409852842,
+            "naturalness_index": 0.494661510744553
           },
           {
             "bucket_id": "en|single|assistant|long",
@@ -908,7 +908,7 @@
             "signed__bng": -1.7538271520342417,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.8175259663082033,
-            "naturalness_index": 0.9065533738830589
+            "naturalness_index": 0.5914403734841206
           },
           {
             "bucket_id": "en|single|assistant|medium",
@@ -920,7 +920,7 @@
             "signed__bng": -5.339842997529543,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.8758936707399703,
-            "naturalness_index": 0.8399439897986416
+            "naturalness_index": 0.5494940371873288
           },
           {
             "bucket_id": "en|single|assistant|short",
@@ -932,7 +932,7 @@
             "signed__bng": -0.29780959840397253,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.8247708074071468,
-            "naturalness_index": 0.9509138085392952
+            "naturalness_index": 0.6200769035169704
           },
           {
             "bucket_id": "en|single|assistant|xlong",
@@ -944,7 +944,7 @@
             "signed__bng": -1.73473684912215,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.9179429377599779,
-            "naturalness_index": 0.9632725073096878
+            "naturalness_index": 0.6294408778327727
           },
           {
             "bucket_id": "en|single|qa|long",
@@ -968,17 +968,17 @@
             "signed__bng": -12.633838111032315,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.3919033571336529,
-            "naturalness_index": 0.36719883318471447
+            "naturalness_index": 0.23813233819265128
           },
           {
             "bucket_id": "en|single|qa|short",
             "utility_qa_f1": 0.3496241632635405,
             "bng": 0.15928671298186123,
-            "hcr": 0.0,
+            "hcr": 0.3598344074892976,
             "c_mauve": 0.9056386865067823,
             "tdm": NaN,
             "signed__bng": -0.15928671298186123,
-            "signed__hcr": 0.0,
+            "signed__hcr": 0.3598344074892976,
             "signed__c_mauve": 0.9056386865067823,
             "naturalness_index": 1.0
           },
@@ -992,7 +992,7 @@
             "signed__bng": -3.5704856343133278,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.01752065210116674,
-            "naturalness_index": 0.4086017934584405
+            "naturalness_index": 0.25906472207189063
           }
         ]
       },
@@ -1039,7 +1039,7 @@
             "bng": 2.0948520953444913,
             "hcr": 0.0,
             "c_mauve": 0.9930546152888989,
-            "tdm": 0.4953332685516465,
+            "tdm": 0.4953332685516466,
             "utility_score": 0.01474220968190099,
             "normalized__bng": 0.32311721826845136,
             "normalized__c_mauve": 0.9930546152888989,
@@ -1061,13 +1061,13 @@
             "bucket_id": "en|multi|qa|short",
             "utility_qa_f1": 0.11757603281520732,
             "bng": 1.2509720357992826,
-            "hcr": 0.0,
-            "c_mauve": 0.49970032078999915,
-            "tdm": 0.6772799445967539,
+            "hcr": 0.014155079544031066,
+            "c_mauve": 0.499200409852842,
+            "tdm": 0.6772799445967537,
             "utility_score": 0.11757603281520732,
             "normalized__bng": 0.4442525202872708,
-            "normalized__c_mauve": 0.49970032078999915,
-            "naturalness_score": 0.4711614658472346
+            "normalized__c_mauve": 0.499200409852842,
+            "naturalness_score": 0.47092572684613826
           },
           {
             "bucket_id": "en|single|assistant|long",
@@ -1145,7 +1145,7 @@
             "bucket_id": "en|single|qa|short",
             "utility_qa_f1": 0.3496241632635405,
             "bng": 0.15928671298186123,
-            "hcr": 0.0,
+            "hcr": 0.3598344074892976,
             "c_mauve": 0.9056386865067823,
             "tdm": NaN,
             "utility_score": 0.3496241632635405,
@@ -1184,13 +1184,13 @@
           "utility": 0.0,
           "naturalness": 0.0
         },
-        "frontier_auc": 0.05519219565297708,
-        "hypervolume": 0.06266684075922471,
+        "frontier_auc": 0.05518307522526256,
+        "hypervolume": 0.06264859990379565,
         "frontier_points": [
           {
             "bucket_id": "en|multi|qa|short",
             "utility_score": 0.11757603281520732,
-            "naturalness_score": 0.5317439794172147
+            "naturalness_score": 0.5315665975512754
           },
           {
             "bucket_id": "en|multi|dialogue|medium",
@@ -1205,11 +1205,11 @@
             "bng": 2.0948520953444913,
             "hcr": 0.0,
             "c_mauve": 0.9930546152888989,
-            "tdm": 0.4953332685516465,
+            "tdm": 0.4953332685516466,
             "utility_score": 0.01474220968190099,
             "normalized__bng": 0.32311721826845136,
             "normalized__c_mauve": 0.9930546152888989,
-            "normalized__tdm": 0.4953332685516465,
+            "normalized__tdm": 0.4953332685516466,
             "naturalness_score": 0.5416809691316671
           },
           {
@@ -1229,22 +1229,22 @@
             "bucket_id": "en|multi|qa|short",
             "utility_qa_f1": 0.11757603281520732,
             "bng": 1.2509720357992826,
-            "hcr": 0.0,
-            "c_mauve": 0.49970032078999915,
-            "tdm": 0.6772799445967539,
+            "hcr": 0.014155079544031066,
+            "c_mauve": 0.499200409852842,
+            "tdm": 0.6772799445967537,
             "utility_score": 0.11757603281520732,
             "normalized__bng": 0.4442525202872708,
-            "normalized__c_mauve": 0.49970032078999915,
-            "normalized__tdm": 0.6772799445967539,
-            "naturalness_score": 0.5317439794172147
+            "normalized__c_mauve": 0.499200409852842,
+            "normalized__tdm": 0.6772799445967537,
+            "naturalness_score": 0.5315665975512754
           }
         ],
         "legacy_frontier_auc": NaN,
         "legacy_loadings": {
-          "bng": 0.6706213729286288,
-          "hcr": -0.0,
-          "c_mauve": -0.5953702578568941,
-          "tdm": 0.4424943279079814
+          "bng": 0.5487769723505045,
+          "hcr": 0.4989383968930641,
+          "c_mauve": -0.4030772608659726,
+          "tdm": 0.5361278135821501
         },
         "legacy_frontier_points": [
           {
@@ -1260,11 +1260,11 @@
             "bng": 2.0948520953444913,
             "hcr": 0.0,
             "c_mauve": 0.9930546152888989,
-            "tdm": 0.4953332685516465,
+            "tdm": 0.4953332685516466,
             "signed__bng": -2.0948520953444913,
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.9930546152888989,
-            "signed__tdm": 0.4953332685516465,
+            "signed__tdm": 0.4953332685516466,
             "naturalness_index": 0.0
           },
           {
@@ -1278,19 +1278,19 @@
             "signed__hcr": 0.0,
             "signed__c_mauve": 0.1714586356172134,
             "signed__tdm": 0.5184755073369683,
-            "naturalness_index": 0.9148720635612954
+            "naturalness_index": 0.5736665044324099
           },
           {
             "bucket_id": "en|multi|qa|short",
             "utility_qa_f1": 0.11757603281520732,
             "bng": 1.2509720357992826,
-            "hcr": 0.0,
-            "c_mauve": 0.49970032078999915,
-            "tdm": 0.6772799445967539,
+            "hcr": 0.014155079544031066,
+            "c_mauve": 0.499200409852842,
+            "tdm": 0.6772799445967537,
             "signed__bng": -1.2509720357992826,
-            "signed__hcr": 0.0,
-            "signed__c_mauve": 0.49970032078999915,
-            "signed__tdm": 0.6772799445967539,
+            "signed__hcr": 0.014155079544031066,
+            "signed__c_mauve": 0.499200409852842,
+            "signed__tdm": 0.6772799445967537,
             "naturalness_index": 1.0
           }
         ]
