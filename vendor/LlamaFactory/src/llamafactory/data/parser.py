@@ -43,6 +43,14 @@ class DatasetAttr:
     images: str | None = None
     videos: str | None = None
     audios: str | None = None
+    dist_sft_weight: str | None = None
+    hdpo_weight: str | None = None
+    critic_bucket_id: str | None = None
+    chosen_dist_score: str | None = None
+    rejected_dist_score: str | None = None
+    baseline_bucket_gap: str | None = None
+    lang_weight: str | None = None
+    pair_type: str | None = None
     # dpo columns
     chosen: str | None = None
     rejected: str | None = None
@@ -79,7 +87,22 @@ class DatasetAttr:
 
         if "columns" in attr:
             column_names = ["prompt", "query", "response", "history", "messages", "system", "tools"]
-            column_names += ["images", "videos", "audios", "chosen", "rejected", "kto_tag"]
+            column_names += [
+                "images",
+                "videos",
+                "audios",
+                "dist_sft_weight",
+                "hdpo_weight",
+                "critic_bucket_id",
+                "chosen_dist_score",
+                "rejected_dist_score",
+                "baseline_bucket_gap",
+                "lang_weight",
+                "pair_type",
+                "chosen",
+                "rejected",
+                "kto_tag",
+            ]
             for column_name in column_names:
                 self.set_attr(column_name, attr["columns"])
 

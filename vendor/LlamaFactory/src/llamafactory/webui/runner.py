@@ -230,10 +230,12 @@ class Runner:
             args["ppo_whiten_rewards"] = get("train.ppo_whiten_rewards")
             args["top_k"] = 0
             args["top_p"] = 0.9
-        elif args["stage"] in ["dpo", "kto"]:
+        elif args["stage"] in ["dpo", "hdpo", "kto"]:
             args["pref_beta"] = get("train.pref_beta")
             args["pref_ftx"] = get("train.pref_ftx")
             args["pref_loss"] = get("train.pref_loss")
+            if args["stage"] == "hdpo":
+                args["hdpo_reg_lambda"] = get("train.hdpo_reg_lambda")
 
         # multimodal config
         if model_name in MULTIMODAL_SUPPORTED_MODELS:

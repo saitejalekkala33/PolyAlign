@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from transformers import Seq2SeqTrainer
 from typing_extensions import override
 
@@ -147,8 +148,47 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
 
         return super()._get_train_sampler(*args, **kwargs)
 
+    def _compute_dist_sft_loss(
+        self, model: "torch.nn.Module", inputs: dict[str, Union["torch.Tensor", Any]]
+    ) -> tuple["torch.Tensor", Any]:
+        dist_sft_weight = inputs.pop("dist_sft_weight", None)
+        labels = inputs.get("labels")
+        if dist_sft_weight is None:
+            raise ValueError("Dist-SFT requires `dist_sft_weight` in each batch.")
+        if labels is None:
+            raise ValueError("Dist-SFT requires `labels` in each batch.")
+
+        outputs = model(**inputs)
+        logits = outputs.logits
+        shift_logits = logits[..., :-1, :].contiguous()
+        shift_labels = labels[..., 1:].contiguous()
+        valid_mask = shift_labels.ne(IGNORE_INDEX)
+
+        token_losses = F.cross_entropy(
+            shift_logits.view(-1, shift_logits.size(-1)),
+            shift_labels.view(-1),
+            ignore_index=IGNORE_INDEX,
+            reduction="none",
+        ).view_as(shift_labels)
+        token_losses = token_losses * valid_mask
+
+        token_count = valid_mask.sum(dim=-1).clamp(min=1)
+        per_example_loss = token_losses.sum(dim=-1) / token_count
+        dist_sft_weight = dist_sft_weight.to(device=per_example_loss.device, dtype=per_example_loss.dtype)
+        denom = dist_sft_weight.sum().clamp(min=torch.finfo(per_example_loss.dtype).eps)
+        loss = torch.sum(per_example_loss * dist_sft_weight) / denom
+        return loss, outputs
+
     @override
     def compute_loss(self, model, inputs, *args, **kwargs):
+        return_outputs = kwargs.get("return_outputs", False)
+        if len(args) >= 1:
+            return_outputs = args[0]
+
+        if self.finetuning_args.use_dist_sft:
+            loss, outputs = self._compute_dist_sft_loss(model, inputs)
+            return (loss, outputs) if return_outputs else loss
+
         if self.finetuning_args.use_asft_loss:
             with torch.no_grad():
                 ref_outputs = self.ref_model(

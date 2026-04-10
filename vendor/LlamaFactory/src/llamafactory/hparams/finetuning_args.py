@@ -457,7 +457,7 @@ class FinetuningArguments(
         default=False,
         metadata={"help": "Whether or not to train model in purely bf16 precision (without AMP)."},
     )
-    stage: Literal["pt", "sft", "rm", "ppo", "dpo", "kto"] = field(
+    stage: Literal["pt", "sft", "rm", "ppo", "dpo", "kto", "hdpo"] = field(
         default="sft",
         metadata={"help": "Which stage will be performed in training."},
     )
@@ -501,6 +501,42 @@ class FinetuningArguments(
     use_eaft_loss: bool = field(
         default=False,
         metadata={"help": "Whether to use the EAFT loss."},
+    )
+    use_dist_sft: bool = field(
+        default=False,
+        metadata={"help": "Whether to use the Dist-SFT weighted supervised loss."},
+    )
+    hdpo_reg_lambda: float = field(
+        default=0.1,
+        metadata={"help": "The critic-based distribution regularization coefficient for HDPO training."},
+    )
+    hdpo_online_reg_lambda: float = field(
+        default=0.0,
+        metadata={"help": "The coefficient for the optional online policy-sampled HDPO regularization term."},
+    )
+    hdpo_online_reg_interval: int = field(
+        default=1,
+        metadata={"help": "Compute the online HDPO regularization every n steps."},
+    )
+    hdpo_online_max_new_tokens: int = field(
+        default=128,
+        metadata={"help": "Maximum new tokens when sampling online HDPO responses."},
+    )
+    hdpo_online_temperature: float = field(
+        default=0.0,
+        metadata={"help": "Sampling temperature for online HDPO response generation."},
+    )
+    hdpo_online_top_p: float = field(
+        default=1.0,
+        metadata={"help": "Top-p used for online HDPO response generation."},
+    )
+    hdpo_critic_path: str | None = field(
+        default=None,
+        metadata={"help": "Path to a trained HDPO critic bundle for online regularization."},
+    )
+    hdpo_critic_device: str = field(
+        default="auto",
+        metadata={"help": "Torch device used to load the HDPO critic bundle."},
     )
     eaft_alpha: float = field(
         default=1.0,
@@ -553,7 +589,7 @@ class FinetuningArguments(
         self.additional_target: list[str] | None = split_arg(self.additional_target)
         self.galore_target: list[str] = split_arg(self.galore_target)
         self.apollo_target: list[str] = split_arg(self.apollo_target)
-        self.use_ref_model = self.stage == "dpo" and self.pref_loss not in ["orpo", "simpo"]
+        self.use_ref_model = self.stage in ["dpo", "hdpo"] and self.pref_loss not in ["orpo", "simpo"]
 
         assert self.finetuning_type in ["lora", "oft", "freeze", "full"], "Invalid fine-tuning method."
         assert self.ref_model_quantization_bit in [None, 8, 4], "We only accept 4-bit or 8-bit quantization."
@@ -570,6 +606,36 @@ class FinetuningArguments(
 
         if self.stage == "dpo" and self.pref_loss != "sigmoid" and self.dpo_label_smoothing > 1e-6:
             raise ValueError("`dpo_label_smoothing` is only valid for sigmoid loss function.")
+
+        if self.stage == "hdpo" and self.pref_loss in ["orpo", "simpo"]:
+            raise ValueError("`pref_loss` must use a reference-model DPO objective in HDPO training.")
+
+        if self.stage == "hdpo" and self.hdpo_reg_lambda < 0:
+            raise ValueError("`hdpo_reg_lambda` must be non-negative.")
+
+        if self.stage == "hdpo" and self.hdpo_online_reg_lambda < 0:
+            raise ValueError("`hdpo_online_reg_lambda` must be non-negative.")
+
+        if self.stage == "hdpo" and self.hdpo_online_reg_interval < 1:
+            raise ValueError("`hdpo_online_reg_interval` must be at least 1.")
+
+        if self.stage == "hdpo" and self.hdpo_online_max_new_tokens < 1:
+            raise ValueError("`hdpo_online_max_new_tokens` must be at least 1.")
+
+        if self.stage == "hdpo" and not (0.0 < self.hdpo_online_top_p <= 1.0):
+            raise ValueError("`hdpo_online_top_p` must be in (0, 1].")
+
+        if self.stage == "hdpo" and self.hdpo_online_temperature < 0:
+            raise ValueError("`hdpo_online_temperature` must be non-negative.")
+
+        if self.stage == "hdpo" and self.hdpo_online_reg_lambda > 0 and self.hdpo_critic_path is None:
+            raise ValueError("`hdpo_critic_path` is required when `hdpo_online_reg_lambda` is positive.")
+
+        if self.use_dist_sft and self.stage != "sft":
+            raise ValueError("`use_dist_sft` is only valid for SFT training.")
+
+        if self.use_dist_sft and (self.use_dft_loss or self.use_asft_loss or self.use_eaft_loss):
+            raise ValueError("`use_dist_sft` cannot be combined with DFT, ASFT or EAFT losses.")
 
         if self.use_llama_pro and self.finetuning_type == "full":
             raise ValueError("`use_llama_pro` is only valid for Freeze or LoRA training.")

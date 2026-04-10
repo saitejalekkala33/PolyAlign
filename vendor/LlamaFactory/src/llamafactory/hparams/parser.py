@@ -432,7 +432,7 @@ def get_train_args(args: dict[str, Any] | list[str] | None = None) -> _TRAIN_CLS
     if (not training_args.do_train) and model_args.quantization_bit is not None:
         logger.warning_rank0("Evaluating model in 4/8-bit mode may cause lower scores.")
 
-    if (not training_args.do_train) and finetuning_args.stage == "dpo" and finetuning_args.ref_model is None:
+    if (not training_args.do_train) and finetuning_args.stage in ["dpo", "hdpo"] and finetuning_args.ref_model is None:
         logger.warning_rank0("Specify `ref_model` for computing rewards at evaluation.")
 
     # Post-process training arguments

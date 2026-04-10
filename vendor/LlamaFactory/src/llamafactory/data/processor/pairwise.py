@@ -71,6 +71,10 @@ class PairwiseDatasetProcessor(DatasetProcessor):
     def preprocess_dataset(self, examples: dict[str, list[Any]]) -> dict[str, list[Any]]:
         # build input pairs with format `<bos> X`, `Y1 <eos>` and `Y2 <eos>`
         model_inputs = defaultdict(list)
+        has_hdpo_weight = "_hdpo_weight" in examples
+        has_critic_bucket_id = "_critic_bucket_id" in examples
+        has_chosen_dist_score = "_chosen_dist_score" in examples
+        has_rejected_dist_score = "_rejected_dist_score" in examples
         for i in range(len(examples["_prompt"])):
             if len(examples["_prompt"][i]) % 2 != 1 or len(examples["_response"][i]) < 2:
                 logger.warning_rank0(
@@ -96,6 +100,14 @@ class PairwiseDatasetProcessor(DatasetProcessor):
             model_inputs["images"].append(examples["_images"][i])
             model_inputs["videos"].append(examples["_videos"][i])
             model_inputs["audios"].append(examples["_audios"][i])
+            if has_hdpo_weight:
+                model_inputs["hdpo_weight"].append(float(examples["_hdpo_weight"][i]))
+            if has_critic_bucket_id:
+                model_inputs["critic_bucket_id"].append(int(examples["_critic_bucket_id"][i]))
+            if has_chosen_dist_score:
+                model_inputs["chosen_dist_score"].append(float(examples["_chosen_dist_score"][i]))
+            if has_rejected_dist_score:
+                model_inputs["rejected_dist_score"].append(float(examples["_rejected_dist_score"][i]))
 
         return model_inputs
 

@@ -88,6 +88,74 @@ def _cmd_pipeline(args) -> None:
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
+def _cmd_hdpo_critic_prepare(args) -> None:
+    from polyalign_data.hdpo_critic import prepare_hdpo_critic_targets
+
+    summary = prepare_hdpo_critic_targets(
+        args.record_path,
+        args.feature_path,
+        args.references_path,
+        args.output_path,
+        text_field=args.text_field,
+        support_band=args.support_band,
+        include_text=(not args.drop_text),
+    )
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
+def _cmd_hdpo_critic_train(args) -> None:
+    from polyalign_data.hdpo_critic import train_hdpo_critic
+
+    summary = train_hdpo_critic(
+        train_paths=args.train_path,
+        output_dir=args.output_dir,
+        encoder_name_or_path=args.encoder_name_or_path,
+        eval_paths=args.eval_path,
+        pair_train_paths=args.pair_train_path,
+        pair_eval_paths=args.pair_eval_path,
+        batch_size=args.batch_size,
+        pair_batch_size=args.pair_batch_size,
+        learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay,
+        num_epochs=args.num_epochs,
+        max_length=args.max_length,
+        hidden_dim=args.hidden_dim,
+        bucket_dim=args.bucket_dim,
+        dropout=args.dropout,
+        margin=args.margin,
+        reg_lambda=args.reg_lambda,
+        rank_lambda=args.rank_lambda,
+        encoder_learning_rate=args.encoder_learning_rate,
+        finetune_encoder=args.finetune_encoder,
+        trust_remote_code=args.trust_remote_code,
+        device=args.device,
+        seed=args.seed,
+    )
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
+def _cmd_hdpo_critic_score_pairs(args) -> None:
+    from polyalign_data.hdpo_critic import score_hdpo_pair_file, score_hdpo_pair_root
+
+    if args.input_root:
+        summary = score_hdpo_pair_root(
+            args.input_root,
+            args.output_root,
+            critic_path=args.critic_path,
+            batch_size=args.batch_size,
+            device=args.device,
+        )
+    else:
+        summary = score_hdpo_pair_file(
+            args.input_path,
+            args.output_path,
+            critic_path=args.critic_path,
+            batch_size=args.batch_size,
+            device=args.device,
+        )
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="PolyAlign dataset preprocessing CLI.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -133,10 +201,73 @@ def build_parser() -> argparse.ArgumentParser:
     pipeline_parser.add_argument("--overwrite", action="store_true", help="Override the config and rebuild all pipeline outputs.")
     pipeline_parser.set_defaults(func=_cmd_pipeline)
 
+    hdpo_prepare_parser = subparsers.add_parser(
+        "hdpo-critic-prepare",
+        help="Prepare HDPO critic regression targets from aligned records, feature rows, and bucket references.",
+    )
+    hdpo_prepare_parser.add_argument("--record-path", required=True, help="Current-format JSONL/JSON file containing responses.")
+    hdpo_prepare_parser.add_argument("--feature-path", required=True, help="Aligned feature JSONL/JSON file for the same records.")
+    hdpo_prepare_parser.add_argument("--references-path", required=True, help="Path to bucket_references.json.")
+    hdpo_prepare_parser.add_argument("--output-path", required=True, help="Output JSONL/JSON file for critic regression data.")
+    hdpo_prepare_parser.add_argument("--text-field", default="human_answer", help="Response field to extract from the input records.")
+    hdpo_prepare_parser.add_argument(
+        "--support-band",
+        choices=["q10_q90", "q25_q75"],
+        default="q10_q90",
+        help="Support interval used to compute distance-to-support targets.",
+    )
+    hdpo_prepare_parser.add_argument("--drop-text", action="store_true", help="Do not include response_text in the prepared dataset.")
+    hdpo_prepare_parser.set_defaults(func=_cmd_hdpo_critic_prepare)
+
+    hdpo_train_parser = subparsers.add_parser("hdpo-critic-train", help="Train the HDPO distribution critic.")
+    hdpo_train_parser.add_argument("--train-path", action="append", required=True, help="Prepared critic regression JSONL/JSON file. Repeatable.")
+    hdpo_train_parser.add_argument("--eval-path", action="append", help="Optional eval regression JSONL/JSON file. Repeatable.")
+    hdpo_train_parser.add_argument("--pair-train-path", action="append", help="Optional pairwise JSONL/JSON file for ranking loss. Repeatable.")
+    hdpo_train_parser.add_argument("--pair-eval-path", action="append", help="Optional pairwise eval JSONL/JSON file for ranking loss. Repeatable.")
+    hdpo_train_parser.add_argument("--output-dir", required=True, help="Directory where the critic bundle will be written.")
+    hdpo_train_parser.add_argument("--encoder-name-or-path", required=True, help="Transformer encoder backbone used for response embeddings.")
+    hdpo_train_parser.add_argument("--batch-size", type=int, default=16, help="Regression batch size.")
+    hdpo_train_parser.add_argument("--pair-batch-size", type=int, default=8, help="Pair ranking batch size.")
+    hdpo_train_parser.add_argument("--learning-rate", type=float, default=1.0e-3, help="Critic learning rate.")
+    hdpo_train_parser.add_argument("--encoder-learning-rate", type=float, help="Optional separate learning rate when fine-tuning the encoder.")
+    hdpo_train_parser.add_argument("--weight-decay", type=float, default=0.0, help="Optimizer weight decay.")
+    hdpo_train_parser.add_argument("--num-epochs", type=int, default=3, help="Number of critic training epochs.")
+    hdpo_train_parser.add_argument("--max-length", type=int, default=512, help="Maximum encoder sequence length.")
+    hdpo_train_parser.add_argument("--hidden-dim", type=int, default=256, help="Hidden size of the critic MLP.")
+    hdpo_train_parser.add_argument("--bucket-dim", type=int, default=64, help="Bucket embedding size.")
+    hdpo_train_parser.add_argument("--dropout", type=float, default=0.1, help="Critic dropout.")
+    hdpo_train_parser.add_argument("--margin", type=float, default=0.1, help="Ranking margin for chosen vs rejected.")
+    hdpo_train_parser.add_argument("--reg-lambda", type=float, default=1.0, help="Regression coefficient.")
+    hdpo_train_parser.add_argument("--rank-lambda", type=float, default=1.0, help="Ranking coefficient.")
+    hdpo_train_parser.add_argument("--finetune-encoder", action="store_true", help="Fine-tune the encoder backbone together with the critic.")
+    hdpo_train_parser.add_argument("--trust-remote-code", action="store_true", help="Pass trust_remote_code=True to AutoModel/AutoTokenizer.")
+    hdpo_train_parser.add_argument("--device", default="auto", help="Torch device for critic training.")
+    hdpo_train_parser.add_argument("--seed", type=int, default=42, help="Random seed.")
+    hdpo_train_parser.set_defaults(func=_cmd_hdpo_critic_train)
+
+    hdpo_score_parser = subparsers.add_parser(
+        "hdpo-critic-score-pairs",
+        help="Score chosen/rejected pair files with a trained HDPO critic.",
+    )
+    hdpo_score_group = hdpo_score_parser.add_mutually_exclusive_group(required=True)
+    hdpo_score_group.add_argument("--input-path", help="Single pairwise JSONL/JSON file to score.")
+    hdpo_score_group.add_argument("--input-root", help="Root directory containing per-dataset pairwise split JSONL files.")
+    hdpo_score_parser.add_argument("--output-path", help="Output JSONL/JSON path for single-file scoring.")
+    hdpo_score_parser.add_argument("--output-root", help="Output root for mirrored per-dataset scoring.")
+    hdpo_score_parser.add_argument("--critic-path", required=True, help="Path to a trained critic bundle directory.")
+    hdpo_score_parser.add_argument("--batch-size", type=int, default=16, help="Critic scoring batch size.")
+    hdpo_score_parser.add_argument("--device", default="auto", help="Torch device for critic scoring.")
+    hdpo_score_parser.set_defaults(func=_cmd_hdpo_critic_score_pairs)
+
     return parser
 
 
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+    if args.command == "hdpo-critic-score-pairs":
+        if getattr(args, "input_path", None) and not getattr(args, "output_path", None):
+            parser.error("--output-path is required when --input-path is used.")
+        if getattr(args, "input_root", None) and not getattr(args, "output_root", None):
+            parser.error("--output-root is required when --input-root is used.")
     args.func(args)

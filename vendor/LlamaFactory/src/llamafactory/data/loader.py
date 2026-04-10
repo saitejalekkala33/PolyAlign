@@ -166,7 +166,7 @@ def _get_merged_dataset(
     model_args: "ModelArguments",
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "hdpo"],
     return_dict: bool = False,
 ) -> Union["Dataset", "IterableDataset", dict[str, "Dataset"]] | None:
     r"""Return the merged datasets in the standard format."""
@@ -175,7 +175,9 @@ def _get_merged_dataset(
 
     datasets = {}
     for dataset_name, dataset_attr in zip(dataset_names, get_dataset_list(dataset_names, data_args.dataset_dir)):
-        if (stage == "rm" and dataset_attr.ranking is False) or (stage != "rm" and dataset_attr.ranking is True):
+        if (stage in ["rm", "hdpo"] and dataset_attr.ranking is False) or (
+            stage not in ["rm", "hdpo"] and dataset_attr.ranking is True
+        ):
             raise ValueError("The dataset is not applicable in the current training stage.")
 
         datasets[dataset_name] = _load_single_dataset(dataset_attr, model_args, data_args, training_args)
@@ -188,7 +190,7 @@ def _get_merged_dataset(
 
 def _get_dataset_processor(
     data_args: "DataArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "hdpo"],
     template: "Template",
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"],
@@ -216,7 +218,7 @@ def _get_dataset_processor(
         else:
             dataset_processor_class = SupervisedDatasetProcessor
 
-    elif stage == "rm":
+    elif stage in ["rm", "hdpo"]:
         dataset_processor_class = PairwiseDatasetProcessor
     elif stage == "kto":
         dataset_processor_class = FeedbackDatasetProcessor
@@ -230,7 +232,7 @@ def _get_preprocessed_dataset(
     dataset: Union["Dataset", "IterableDataset"] | None,
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "hdpo"],
     template: "Template",
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"] = None,
@@ -278,7 +280,7 @@ def get_dataset(
     model_args: "ModelArguments",
     data_args: "DataArguments",
     training_args: "Seq2SeqTrainingArguments",
-    stage: Literal["pt", "sft", "rm", "ppo", "kto"],
+    stage: Literal["pt", "sft", "rm", "ppo", "kto", "hdpo"],
     tokenizer: "PreTrainedTokenizer",
     processor: Optional["ProcessorMixin"] = None,
 ) -> "DatasetModule":

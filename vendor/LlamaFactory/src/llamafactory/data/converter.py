@@ -75,6 +75,41 @@ class DatasetConverter:
 
         return medias
 
+    def _get_dist_sft_weight(self, example: dict[str, Any]) -> float:
+        if not self.dataset_attr.dist_sft_weight:
+            return 1.0
+
+        raw_weight = example.get(self.dataset_attr.dist_sft_weight, 1.0)
+        try:
+            return float(raw_weight)
+        except (TypeError, ValueError):
+            logger.warning_rank0_once(
+                f"Invalid Dist-SFT weight `{raw_weight}` for dataset {self.dataset_attr}; defaulting to 1.0."
+            )
+            return 1.0
+
+    def _get_float_metadata(self, example: dict[str, Any], column_name: str | None, default: float = 0.0) -> float:
+        if not column_name:
+            return default
+
+        raw_value = example.get(column_name, default)
+        try:
+            return float(raw_value)
+        except (TypeError, ValueError):
+            logger.warning_rank0_once(
+                f"Invalid float metadata `{raw_value}` for dataset {self.dataset_attr}; defaulting to {default}."
+            )
+            return default
+
+    def _get_text_metadata(self, example: dict[str, Any], column_name: str | None, default: str = "") -> str:
+        if not column_name:
+            return default
+
+        raw_value = example.get(column_name, default)
+        if raw_value is None:
+            return default
+        return str(raw_value)
+
     @abstractmethod
     def __call__(self, example: dict[str, Any]) -> dict[str, Any]:
         r"""Convert a single example in the dataset to the standard format."""
@@ -127,7 +162,30 @@ class AlpacaDatasetConverter(DatasetConverter):
             "_images": self._find_medias(example[self.dataset_attr.images]) if self.dataset_attr.images else None,
             "_videos": self._find_medias(example[self.dataset_attr.videos]) if self.dataset_attr.videos else None,
             "_audios": self._find_medias(example[self.dataset_attr.audios]) if self.dataset_attr.audios else None,
+            "_dist_sft_weight": self._get_dist_sft_weight(example),
         }
+        if self.dataset_attr.hdpo_weight:
+            output["_hdpo_weight"] = self._get_float_metadata(example, self.dataset_attr.hdpo_weight, default=1.0)
+        if self.dataset_attr.critic_bucket_id:
+            output["_critic_bucket_id"] = int(
+                self._get_float_metadata(example, self.dataset_attr.critic_bucket_id, default=0.0)
+            )
+        if self.dataset_attr.chosen_dist_score:
+            output["_chosen_dist_score"] = self._get_float_metadata(
+                example, self.dataset_attr.chosen_dist_score, default=0.0
+            )
+        if self.dataset_attr.rejected_dist_score:
+            output["_rejected_dist_score"] = self._get_float_metadata(
+                example, self.dataset_attr.rejected_dist_score, default=0.0
+            )
+        if self.dataset_attr.baseline_bucket_gap:
+            output["_baseline_bucket_gap"] = self._get_float_metadata(
+                example, self.dataset_attr.baseline_bucket_gap, default=0.0
+            )
+        if self.dataset_attr.lang_weight:
+            output["_lang_weight"] = self._get_float_metadata(example, self.dataset_attr.lang_weight, default=0.0)
+        if self.dataset_attr.pair_type:
+            output["_pair_type"] = self._get_text_metadata(example, self.dataset_attr.pair_type, default="")
         return output
 
 
@@ -223,7 +281,30 @@ class SharegptDatasetConverter(DatasetConverter):
             "_images": self._find_medias(example[self.dataset_attr.images]) if self.dataset_attr.images else None,
             "_videos": self._find_medias(example[self.dataset_attr.videos]) if self.dataset_attr.videos else None,
             "_audios": self._find_medias(example[self.dataset_attr.audios]) if self.dataset_attr.audios else None,
+            "_dist_sft_weight": self._get_dist_sft_weight(example),
         }
+        if self.dataset_attr.hdpo_weight:
+            output["_hdpo_weight"] = self._get_float_metadata(example, self.dataset_attr.hdpo_weight, default=1.0)
+        if self.dataset_attr.critic_bucket_id:
+            output["_critic_bucket_id"] = int(
+                self._get_float_metadata(example, self.dataset_attr.critic_bucket_id, default=0.0)
+            )
+        if self.dataset_attr.chosen_dist_score:
+            output["_chosen_dist_score"] = self._get_float_metadata(
+                example, self.dataset_attr.chosen_dist_score, default=0.0
+            )
+        if self.dataset_attr.rejected_dist_score:
+            output["_rejected_dist_score"] = self._get_float_metadata(
+                example, self.dataset_attr.rejected_dist_score, default=0.0
+            )
+        if self.dataset_attr.baseline_bucket_gap:
+            output["_baseline_bucket_gap"] = self._get_float_metadata(
+                example, self.dataset_attr.baseline_bucket_gap, default=0.0
+            )
+        if self.dataset_attr.lang_weight:
+            output["_lang_weight"] = self._get_float_metadata(example, self.dataset_attr.lang_weight, default=0.0)
+        if self.dataset_attr.pair_type:
+            output["_pair_type"] = self._get_text_metadata(example, self.dataset_attr.pair_type, default="")
         return output
 
 
@@ -363,7 +444,30 @@ class OpenAIDatasetConverter(DatasetConverter):
             "_images": self._find_medias(example[self.dataset_attr.images]) if self.dataset_attr.images else None,
             "_videos": self._find_medias(example[self.dataset_attr.videos]) if self.dataset_attr.videos else None,
             "_audios": self._find_medias(example[self.dataset_attr.audios]) if self.dataset_attr.audios else None,
+            "_dist_sft_weight": self._get_dist_sft_weight(example),
         }
+        if self.dataset_attr.hdpo_weight:
+            output["_hdpo_weight"] = self._get_float_metadata(example, self.dataset_attr.hdpo_weight, default=1.0)
+        if self.dataset_attr.critic_bucket_id:
+            output["_critic_bucket_id"] = int(
+                self._get_float_metadata(example, self.dataset_attr.critic_bucket_id, default=0.0)
+            )
+        if self.dataset_attr.chosen_dist_score:
+            output["_chosen_dist_score"] = self._get_float_metadata(
+                example, self.dataset_attr.chosen_dist_score, default=0.0
+            )
+        if self.dataset_attr.rejected_dist_score:
+            output["_rejected_dist_score"] = self._get_float_metadata(
+                example, self.dataset_attr.rejected_dist_score, default=0.0
+            )
+        if self.dataset_attr.baseline_bucket_gap:
+            output["_baseline_bucket_gap"] = self._get_float_metadata(
+                example, self.dataset_attr.baseline_bucket_gap, default=0.0
+            )
+        if self.dataset_attr.lang_weight:
+            output["_lang_weight"] = self._get_float_metadata(example, self.dataset_attr.lang_weight, default=0.0)
+        if self.dataset_attr.pair_type:
+            output["_pair_type"] = self._get_text_metadata(example, self.dataset_attr.pair_type, default="")
         return output
 
 

@@ -1,0 +1,61 @@
+### model
+model_name_or_path: saves/qwen2_5-1_5b/full/dist_sft/polyalign
+trust_remote_code: true
+
+### method
+stage: hdpo
+do_train: true
+do_eval: true
+finetuning_type: full
+pref_beta: 0.1
+pref_loss: sigmoid
+pref_ftx: 0.05
+hdpo_reg_lambda: 0.1
+hdpo_online_reg_lambda: 0.0
+hdpo_online_reg_interval: 10
+hdpo_online_max_new_tokens: 128
+hdpo_online_temperature: 0.0
+hdpo_online_top_p: 1.0
+hdpo_critic_path: null
+hdpo_critic_device: auto
+
+### dataset
+dataset_dir: data
+dataset: polyalign_hdpo_train
+eval_dataset: polyalign_hdpo_val
+template: qwen
+cutoff_len: 8192
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/qwen2_5-1_5b/full/hdpo/polyalign
+logging_steps: 100
+save_steps: 5000
+eval_steps: 5000
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+save_total_limit: 2
+report_to: wandb
+run_name: qwen25_1_5b_full_hdpo_polyalign_camd
+
+### train
+per_device_train_batch_size: 1
+per_device_eval_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 5.0e-7
+num_train_epochs: 1.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: false
+fp16: true
+ddp_timeout: 180000000
+resume_from_checkpoint: null
+
+### eval
+eval_strategy: steps
+load_best_model_at_end: true
+metric_for_best_model: eval_rewards/accuracies
+greater_is_better: true

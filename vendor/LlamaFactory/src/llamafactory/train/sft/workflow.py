@@ -46,6 +46,9 @@ def run_sft(
     generating_args: "GeneratingArguments",
     callbacks: Optional[list["TrainerCallback"]] = None,
 ):
+    if finetuning_args.use_dist_sft and data_args.packing:
+        raise ValueError("`use_dist_sft` is incompatible with sequence packing. Disable `packing`/`neat_packing`.")
+
     tokenizer_module = load_tokenizer(model_args)
     tokenizer = tokenizer_module["tokenizer"]
     template = get_template_and_fix_tokenizer(tokenizer, data_args)

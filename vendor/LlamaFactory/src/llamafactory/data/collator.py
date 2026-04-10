@@ -304,11 +304,15 @@ class MultiModalDataCollatorForSeq2Seq(DataCollatorForSeq2Seq):
     def __call__(self, features: list[dict[str, Any]]) -> dict[str, "torch.Tensor"]:
         batch_images, batch_videos, batch_audios = [], [], []
         batch_imglens, batch_vidlens, batch_audlens, batch_input_ids = [], [], [], []
+        has_dist_sft_weight = any("dist_sft_weight" in feature for feature in features)
+        dist_sft_weights: list[float] = []
         packing_params_list: list[dict[str, Any] | None] = []
         for feature in features:
             images = feature.pop("images", None) or []
             videos = feature.pop("videos", None) or []
             audios = feature.pop("audios", None) or []
+            if has_dist_sft_weight:
+                dist_sft_weights.append(float(feature.pop("dist_sft_weight", 1.0)))
             batch_images.extend(images)
             batch_videos.extend(videos)
             batch_audios.extend(audios)
@@ -381,6 +385,8 @@ class MultiModalDataCollatorForSeq2Seq(DataCollatorForSeq2Seq):
                 feature["token_type_ids"] = token_type_ids[i]
 
         features: dict[str, torch.Tensor] = super().__call__(features)
+        if has_dist_sft_weight:
+            features["dist_sft_weight"] = torch.tensor(dist_sft_weights, dtype=torch.float32)
 
         bsz, seq_len = features["input_ids"].shape[:2]
         model_type = getattr(self.model.config, "model_type", None) if self.model is not None else None
@@ -516,6 +522,17 @@ class PairwiseDataCollatorWithPadding(MultiModalDataCollatorForSeq2Seq):
         the last n examples represent rejected examples.
         """
         concatenated_features = []
+        has_hdpo_metadata = any(
+            ("hdpo_weight" in feature)
+            or ("critic_bucket_id" in feature)
+            or ("chosen_dist_score" in feature)
+            or ("rejected_dist_score" in feature)
+            for feature in features
+        )
+        hdpo_weights: list[float] = []
+        critic_bucket_ids: list[int] = []
+        chosen_dist_scores: list[float] = []
+        rejected_dist_scores: list[float] = []
         for key in ("chosen", "rejected"):
             for feature in features:
                 target_feature = {
@@ -528,7 +545,20 @@ class PairwiseDataCollatorWithPadding(MultiModalDataCollatorForSeq2Seq):
                 }
                 concatenated_features.append(target_feature)
 
-        return super().__call__(concatenated_features)
+        batch = super().__call__(concatenated_features)
+        if has_hdpo_metadata:
+            for feature in features:
+                hdpo_weights.append(float(feature.get("hdpo_weight", 1.0)))
+                critic_bucket_ids.append(int(feature.get("critic_bucket_id", 0)))
+                chosen_dist_scores.append(float(feature.get("chosen_dist_score", 0.0)))
+                rejected_dist_scores.append(float(feature.get("rejected_dist_score", 0.0)))
+
+            batch["hdpo_weight"] = torch.tensor(hdpo_weights, dtype=torch.float32)
+            batch["critic_bucket_id"] = torch.tensor(critic_bucket_ids, dtype=torch.long)
+            batch["chosen_dist_score"] = torch.tensor(chosen_dist_scores, dtype=torch.float32)
+            batch["rejected_dist_score"] = torch.tensor(rejected_dist_scores, dtype=torch.float32)
+
+        return batch
 
 
 @dataclass

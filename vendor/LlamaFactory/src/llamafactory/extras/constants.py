@@ -110,11 +110,12 @@ TRAINING_STAGES = {
     "Reward Modeling": "rm",
     "PPO": "ppo",
     "DPO": "dpo",
+    "HDPO": "hdpo",
     "KTO": "kto",
     "Pre-Training": "pt",
 }
 
-STAGES_USE_PAIR_DATA = {"rm", "dpo"}
+STAGES_USE_PAIR_DATA = {"rm", "dpo", "hdpo"}
 
 SUPPORTED_CLASS_FOR_S2ATTN = {"llama"}
 
