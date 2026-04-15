@@ -103,6 +103,23 @@ def _cmd_hdpo_critic_prepare(args) -> None:
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
+def _cmd_hdpo_build_pairs(args) -> None:
+    from polyalign_data.build_hdpo_pairs import build_hdpo_pair_files
+
+    summary = build_hdpo_pair_files(
+        args.record_path,
+        args.prediction_path,
+        args.output_root,
+        split_name=args.split_name,
+        pair_type=args.pair_type,
+        prediction_text_field=args.prediction_text_field,
+        keep_exact_match=args.keep_exact_match,
+        keep_mismatched=args.keep_mismatched,
+        merged_output_path=args.merged_output_path,
+    )
+    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
 def _cmd_hdpo_critic_train(args) -> None:
     from polyalign_data.hdpo_critic import train_hdpo_critic
 
@@ -200,6 +217,48 @@ def build_parser() -> argparse.ArgumentParser:
     pipeline_parser.add_argument("--config", required=True, help="Path to a JSON pipeline config file.")
     pipeline_parser.add_argument("--overwrite", action="store_true", help="Override the config and rebuild all pipeline outputs.")
     pipeline_parser.set_defaults(func=_cmd_pipeline)
+
+    hdpo_pair_parser = subparsers.add_parser(
+        "hdpo-build-pairs",
+        help="Build raw HDPO pair files by aligning current-format records with model prediction JSONL files.",
+    )
+    hdpo_pair_parser.add_argument("--record-path", required=True, help="Current-format merged JSONL/JSON file for a single split.")
+    hdpo_pair_parser.add_argument(
+        "--prediction-path",
+        required=True,
+        help="Prediction JSONL/JSON file aligned to the same split and containing `source_index`.",
+    )
+    hdpo_pair_parser.add_argument(
+        "--output-root",
+        required=True,
+        help="Output root where per-dataset pair files are written as `<dataset>/<split>.jsonl`.",
+    )
+    hdpo_pair_parser.add_argument(
+        "--split-name",
+        required=True,
+        help="Source split name to write. Accepts `train`, `dev`, `test`, `validation2`, or `val`.",
+    )
+    hdpo_pair_parser.add_argument("--pair-type", default="global", help="Pair type label written into exported records.")
+    hdpo_pair_parser.add_argument(
+        "--prediction-text-field",
+        default="prediction",
+        help="Field in the prediction rows used as the rejected response text.",
+    )
+    hdpo_pair_parser.add_argument(
+        "--keep-exact-match",
+        action="store_true",
+        help="Keep rows whose rejected prediction exactly matches the human answer after normalization.",
+    )
+    hdpo_pair_parser.add_argument(
+        "--keep-mismatched",
+        action="store_true",
+        help="Keep rows even when instruction/input/reference_output do not match the aligned source record.",
+    )
+    hdpo_pair_parser.add_argument(
+        "--merged-output-path",
+        help="Optional merged JSONL/JSON file containing all exported pair rows for this split.",
+    )
+    hdpo_pair_parser.set_defaults(func=_cmd_hdpo_build_pairs)
 
     hdpo_prepare_parser = subparsers.add_parser(
         "hdpo-critic-prepare",

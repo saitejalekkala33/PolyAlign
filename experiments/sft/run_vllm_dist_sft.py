@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import re
 import time
 from pathlib import Path
 from typing import Any
@@ -12,7 +10,7 @@ from urllib import error, request
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer
 
-DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant. Answer the user's question directly and briefly using the provided context when relevant. Do not repeat yourself. Do not restate the question. Stop after the answer."
+DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant."
 
 
 def ensure_dir(path: Path) -> None:
@@ -38,31 +36,117 @@ def load_records(path: Path) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def first_nonempty_string(example: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = example.get(key, "")
+        if isinstance(value, str):
+            text = value.strip()
+            if text:
+                return text
+    return ""
+
+
+def get_instruction(example: dict[str, Any]) -> str:
+    return first_nonempty_string(example, "instruction", "question")
+
+
+def get_input_text(example: dict[str, Any]) -> str:
+    return first_nonempty_string(example, "input", "context")
+
+
+def get_reference_output(example: dict[str, Any]) -> str:
+    return first_nonempty_string(example, "output", "human_answer", "reference_output")
+
+
+def get_history(example: dict[str, Any]) -> list[list[str]]:
+    history = example.get("history")
+    if isinstance(history, list):
+        normalized: list[list[str]] = []
+        for turn in history:
+            if not isinstance(turn, list) or len(turn) != 2:
+                continue
+            user_text = str(turn[0]).strip()
+            assistant_text = str(turn[1]).strip()
+            if user_text or assistant_text:
+                normalized.append([user_text, assistant_text])
+        if normalized:
+            return normalized
+
+    dialogue_history = example.get("dialogue_history")
+    if isinstance(dialogue_history, list):
+        normalized_dialogue: list[dict[str, str]] = []
+        for turn in dialogue_history:
+            if not isinstance(turn, dict):
+                continue
+            role = str(turn.get("role", "")).strip()
+            text = str(turn.get("text", "")).strip()
+            if role in {"user", "assistant"} and text:
+                normalized_dialogue.append({"role": role, "text": text})
+
+        question = first_nonempty_string(example, "question", "instruction")
+        if normalized_dialogue:
+            last_turn = normalized_dialogue[-1]
+            if last_turn["role"] == "user" and last_turn["text"] == question:
+                normalized_dialogue = normalized_dialogue[:-1]
+
+        pairs: list[list[str]] = []
+        pending_user: str | None = None
+        for turn in normalized_dialogue:
+            if turn["role"] == "user":
+                pending_user = turn["text"]
+            elif turn["role"] == "assistant" and pending_user is not None:
+                pairs.append([pending_user, turn["text"]])
+                pending_user = None
+        return pairs
+
+    return []
+
+
+def build_profile_system_prompt(example: dict[str, Any]) -> str:
+    prompt_parts = [
+        ("family", first_nonempty_string(example, "family")),
+        ("track", first_nonempty_string(example, "track")),
+        ("style", first_nonempty_string(example, "style_bucket")),
+        ("length", first_nonempty_string(example, "length_bin")),
+    ]
+    profile = "; ".join(f"{name}={value}" for name, value in prompt_parts if value)
+    if not profile:
+        return DEFAULT_SYSTEM_PROMPT
+    return f"{DEFAULT_SYSTEM_PROMPT} Follow the target response profile when answering. {profile}."
+
+
+def get_system_message(example: dict[str, Any], *, conditioning_mode: str) -> str:
+    if conditioning_mode != "profile":
+        raise ValueError(f"Unsupported conditioning_mode: {conditioning_mode}")
+    return first_nonempty_string(example, "system") or build_profile_system_prompt(example)
+
+
 def build_user_message(example: dict[str, Any]) -> str:
     parts: list[str] = []
-    context = str(example.get("input", "")).strip()
-    instruction = str(example.get("instruction", "")).strip()
+    context = get_input_text(example)
+    instruction = get_instruction(example)
 
     if context:
         parts.append("Context:\n" + context)
     if instruction:
         parts.append("Question:\n" + instruction)
     if not parts:
-        raise ValueError("Example must contain at least one of `instruction` or `input`.")
+        raise ValueError("Example must contain at least one of `instruction`/`question` or `input`/`context`.")
 
     return "\n\n".join(parts)
 
 
-def build_messages(example: dict[str, Any]) -> list[dict[str, str]]:
+def build_messages(example: dict[str, Any], *, conditioning_mode: str) -> list[dict[str, str]]:
     messages: list[dict[str, str]] = []
+    messages.append(
+        {
+            "role": "system",
+            "content": get_system_message(example, conditioning_mode=conditioning_mode),
+        }
+    )
 
-    system_text = str(example.get("system", "")).strip() or DEFAULT_SYSTEM_PROMPT
-    messages.append({"role": "system", "content": system_text})
-
-    history = example.get("history") or []
+    history = get_history(example)
     for turn in history:
-        if not isinstance(turn, list) or len(turn) != 2:
-            continue
         user_text = str(turn[0]).strip()
         assistant_text = str(turn[1]).strip()
         if user_text:
@@ -74,8 +158,8 @@ def build_messages(example: dict[str, Any]) -> list[dict[str, str]]:
     return messages
 
 
-def render_chat_prompt(tokenizer: Any, example: dict[str, Any]) -> str:
-    messages = build_messages(example)
+def render_chat_prompt(tokenizer: Any, example: dict[str, Any], *, conditioning_mode: str) -> str:
+    messages = build_messages(example, conditioning_mode=conditioning_mode)
     prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     if not isinstance(prompt, str) or not prompt.strip():
         raise ValueError("Tokenizer chat template returned an empty prompt.")
@@ -93,7 +177,7 @@ def sample_examples(
     if sample_size <= 0 or sample_size >= len(indexed):
         return indexed
     if sample_mode != "first":
-        raise ValueError(f"Unsupported sample_mode: {sample_mode}. Only `first` is allowed for SFT evaluation.")
+        raise ValueError(f"Unsupported sample_mode: {sample_mode}. Only `first` is allowed for Dist-SFT evaluation.")
     return indexed[:sample_size]
 
 
@@ -120,7 +204,6 @@ def clean_prediction(text: str) -> str:
         return text
 
     text = text.strip().replace("\r\n", "\n").replace("\r", "\n")
-
     cut_markers = [
         "<|im_end|>",
         "<|endoftext|>",
@@ -133,10 +216,10 @@ def clean_prediction(text: str) -> str:
     if cut_positions:
         text = text[:min(cut_positions)]
 
-    text = text.strip()
-
     if text.startswith("Answer:"):
-        text = text[len("Answer:"):].strip()
+        text = text[len("Answer:") :].strip()
+    if text.startswith("Assistant:"):
+        text = text[len("Assistant:") :].strip()
 
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     filtered_lines: list[str] = []
@@ -152,20 +235,7 @@ def clean_prediction(text: str) -> str:
             continue
         filtered_lines.append(line)
 
-    text = "\n".join(filtered_lines).strip()
-
-    sentences = re.split(r'(?<=[.!?])\s+', text)
-    deduped: list[str] = []
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-        if deduped and sentence == deduped[-1]:
-            continue
-        deduped.append(sentence)
-
-    text = " ".join(deduped).strip()
-    return text
+    return "\n".join(filtered_lines).strip()
 
 
 def call_vllm_completion_batch(
@@ -254,7 +324,7 @@ def write_progress(
     )
 
 
-def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
+def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
     input_path = Path(args.input_path)
     output_dir = Path(args.output_dir)
     ensure_dir(output_dir)
@@ -282,7 +352,7 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
     if not getattr(tokenizer, "chat_template", None):
         raise ValueError(
             "The tokenizer does not expose a chat template. "
-            "Pass the exact Qwen tokenizer/checkpoint used for SFT inference."
+            "Pass the exact Qwen tokenizer/checkpoint used for Dist-SFT inference."
         )
 
     all_records = load_records(input_path)
@@ -303,6 +373,7 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         "model_name": args.model_name,
         "tokenizer_name_or_path": args.tokenizer_name_or_path,
         "trust_remote_code": args.trust_remote_code,
+        "conditioning_mode": args.conditioning_mode,
         "sample_size": args.sample_size,
         "sample_mode": args.sample_mode,
         "seed": args.seed,
@@ -343,47 +414,23 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
 
     mode = "a" if args.resume and predictions_path.exists() else "w"
     total_batches = (len(remaining) + args.batch_size - 1) // args.batch_size if remaining else 0
-
-    max_model_len = 8192
-    safety_margin = 16
-
     with predictions_path.open(mode, encoding="utf-8", buffering=1) as handle:
         for batch in tqdm(
             chunked(remaining, args.batch_size),
             total=total_batches,
-            desc="sft-vllm-batch",
+            desc="dist-sft-vllm-batch",
             unit="batch",
         ):
-            prompts: list[str] = []
-            request_max_tokens = args.max_tokens
-
-            for _source_index, example in batch:
-                prompt = render_chat_prompt(tokenizer, example)
-                input_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
-
-                allowed_max_tokens = max_model_len - len(input_ids) - safety_margin
-
-                if allowed_max_tokens <= 0:
-                    max_input_tokens = max_model_len - max(1, args.max_tokens) - safety_margin
-                    if max_input_tokens <= 0:
-                        raise ValueError(
-                            f"max_input_tokens became non-positive. "
-                            f"max_model_len={max_model_len}, args.max_tokens={args.max_tokens}, "
-                            f"safety_margin={safety_margin}"
-                        )
-                    input_ids = input_ids[:max_input_tokens]
-                    prompt = tokenizer.decode(input_ids, skip_special_tokens=False)
-                    allowed_max_tokens = max_model_len - len(input_ids) - safety_margin
-
-                prompts.append(prompt)
-                request_max_tokens = min(request_max_tokens, max(1, allowed_max_tokens))
-
+            prompts = [
+                render_chat_prompt(tokenizer, example, conditioning_mode=args.conditioning_mode)
+                for _source_index, example in batch
+            ]
             response = call_vllm_completion_batch(
                 base_url=args.base_url,
                 api_key=args.api_key,
                 model_name=args.model_name,
                 prompts=prompts,
-                max_tokens=request_max_tokens,
+                max_tokens=args.max_tokens,
                 temperature=args.temperature,
                 top_p=args.top_p,
                 timeout=args.timeout,
@@ -400,22 +447,28 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
                 prediction = clean_prediction(choice.get("text") or "")
                 row = {
                     "source_index": source_index,
-                    "instruction": example.get("instruction", ""),
-                    "input": example.get("input", ""),
-                    "history": example.get("history", []),
-                    "reference_output": example.get("output", ""),
+                    "instruction": get_instruction(example),
+                    "input": get_input_text(example),
+                    "history": get_history(example),
+                    "reference_output": get_reference_output(example),
+                    "system": get_system_message(example, conditioning_mode=args.conditioning_mode),
                     "prompt": prompts[batch_index],
                     "model_name": args.model_name,
+                    "conditioning_mode": args.conditioning_mode,
                     "prediction": prediction,
+                    "bucket_id": example.get("bucket_id", ""),
+                    "style_bucket": example.get("style_bucket", ""),
+                    "length_bin": example.get("length_bin", ""),
+                    "family": example.get("family", ""),
+                    "track": example.get("track", ""),
                     "finish_reason": choice.get("finish_reason"),
                     "usage": batch_usage,
                     "batch_index": batch_index,
                 }
                 handle.write(json.dumps(row, ensure_ascii=False) + "\n")
-                handle.flush()
-                os.fsync(handle.fileno())
                 completed_count += 1
 
+            handle.flush()
             write_progress(
                 progress_path,
                 status="running",
@@ -436,6 +489,7 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         "records_remaining": len(sampled) - completed_count,
         "model_name": args.model_name,
         "tokenizer_name_or_path": args.tokenizer_name_or_path,
+        "conditioning_mode": args.conditioning_mode,
         "base_url": args.base_url,
         "predictions_path": str(predictions_path),
         "elapsed_seconds": round(time.time() - started, 3),
@@ -458,9 +512,9 @@ def run_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run batched SFT-checkpoint inference against a vLLM completions endpoint using chat-template prompts."
+        description="Run batched Dist-SFT inference against a vLLM completions endpoint using profile-conditioned chat-template prompts."
     )
-    parser.add_argument("--input-path", required=True, help="Path to a LlamaFactory JSON or JSONL split file.")
+    parser.add_argument("--input-path", required=True, help="Path to a Dist-SFT JSON or JSONL split file.")
     parser.add_argument("--output-dir", required=True, help="Output directory for predictions and run metadata.")
     parser.add_argument("--model-name", required=True, help="Served model name expected by the vLLM endpoint.")
     parser.add_argument(
@@ -470,12 +524,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--base-url", required=True, help="Base vLLM URL, e.g. http://127.0.0.1:8000")
     parser.add_argument("--api-key", help="Optional API key if the vLLM server was launched with --api-key.")
+    parser.add_argument(
+        "--conditioning-mode",
+        choices=("profile",),
+        default="profile",
+        help="Conditioning mode used for Dist-SFT evaluation. Research runs should use `profile`.",
+    )
     parser.add_argument("--sample-size", type=int, default=32, help="Number of examples to run. Use <= 0 for all.")
     parser.add_argument(
         "--sample-mode",
         choices=("first",),
         default="first",
-        help="Sampling mode for scheduled examples. SFT evaluation only supports `first`.",
+        help="Sampling mode for scheduled examples. Dist-SFT evaluation only supports `first`.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Retained for CLI compatibility; unused when sample-mode=first.")
     parser.add_argument("--max-tokens", type=int, default=128, help="Maximum new tokens per completion request.")
@@ -495,7 +555,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
-    summary = run_sft_inference(args)
+    summary = run_dist_sft_inference(args)
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
