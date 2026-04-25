@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 import torch
 from torch import nn
+from transformers.integrations import deepspeed as hf_deepspeed
 
 
 if TYPE_CHECKING:
@@ -179,10 +180,21 @@ def load_hdpo_critic_bundle(output_dir: str | Path, *, device: str = "auto") -> 
         elif tokenizer.bos_token is not None:
             tokenizer.pad_token = tokenizer.bos_token
 
-    encoder_model = AutoModel.from_pretrained(
-        config.encoder_name_or_path,
-        trust_remote_code=config.trust_remote_code,
-    )
+    # When HDPO runs under DeepSpeed ZeRO-3, any incidental AutoModel.from_pretrained
+    # call can inherit the global HF DeepSpeed config and get partitioned. The online
+    # critic bundle is an auxiliary inference model and should stay fully materialized.
+    saved_hf_deepspeed_ref = getattr(hf_deepspeed, "_hf_deepspeed_config_weak_ref", None)
+    saved_hf_deepspeed_config = saved_hf_deepspeed_ref() if saved_hf_deepspeed_ref is not None else None
+    if saved_hf_deepspeed_config is not None:
+        hf_deepspeed.unset_hf_deepspeed_config()
+    try:
+        encoder_model = AutoModel.from_pretrained(
+            config.encoder_name_or_path,
+            trust_remote_code=config.trust_remote_code,
+        )
+    finally:
+        if saved_hf_deepspeed_config is not None:
+            hf_deepspeed.set_hf_deepspeed_config(saved_hf_deepspeed_config)
     encoder_model.to(resolved_device)
     encoder_model.eval()
 
