@@ -1,55 +1,55 @@
 ### model
-model_name_or_path: Qwen/Qwen2.5-1.5B
+model_name_or_path: saves/qwen25-15b-sample-sft
 trust_remote_code: true
 
 ### method
-stage: sft
+stage: dpo
 do_train: true
 do_eval: true
 finetuning_type: full
-use_dist_sft: true
+pref_beta: 0.1
+pref_loss: sigmoid
 deepspeed: examples/deepspeed/ds_z3_config.json
 
 ### dataset
 dataset_dir: data
-dataset: polyalign_dist_sft_train
-eval_dataset: polyalign_dist_sft_val
+dataset: qwen25_1_5b_sample_train_dpo_en
+eval_dataset: qwen25_1_5b_sample_val_dpo_en
 template: qwen
 cutoff_len: 3072
 overwrite_cache: true
 preprocessing_num_workers: 16
 dataloader_num_workers: 4
-packing: false
 
 ### output
-output_dir: saves/qwen2_5-1_5b-sample/full/dist_sft/polyalign
+output_dir: saves/qwen2_5-1_5b-sample/full/dpo/polyalign-en
 logging_steps: 10
-save_strategy: "no"
-# save_steps: 10000
-# eval_steps: 10000
+# save_steps: 5000
+# eval_steps: 5000
 plot_loss: true
 overwrite_output_dir: true
 save_only_model: true
+save_strategy: "no"
 # save_total_limit: 2
 report_to: none
-# run_name: qwen25_1_5b_full_dist_sft_polyalign_camd
+# run_name: qwen25_1_5b_full_dpo_polyalign_zh
 
 ### train
 per_device_train_batch_size: 1
 per_device_eval_batch_size: 1
 gradient_accumulation_steps: 8
-learning_rate: 1.0e-5
+learning_rate: 5.0e-7
 num_train_epochs: 1.0
 lr_scheduler_type: cosine
 warmup_ratio: 0.1
-bf16: false
-fp16: true
+bf16: true
+fp16: false
 ddp_timeout: 180000000
 resume_from_checkpoint: null
 
 ### eval
 eval_strategy: steps
-load_best_model_at_end: false
 eval_steps: 1000
-# metric_for_best_model: eval_loss
-# greater_is_better: false
+load_best_model_at_end: false
+# metric_for_best_model: eval_rewards/accuracies
+# greater_is_better: true

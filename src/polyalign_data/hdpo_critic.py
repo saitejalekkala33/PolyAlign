@@ -280,6 +280,10 @@ def _load_records_from_paths(paths: list[str | Path]) -> list[dict[str, Any]]:
     return records
 
 
+def _unwrap_module(module: nn.Module) -> nn.Module:
+    return module.module if isinstance(module, nn.DataParallel) else module
+
+
 @dataclass
 class CriticTrainingMetrics:
     total_loss: float
@@ -324,8 +328,13 @@ def train_hdpo_critic(
     trust_remote_code: bool = False,
     device: str = "auto",
     seed: int = 42,
+    show_progress: bool = True,
 ) -> dict[str, Any]:
     from transformers import AutoModel, AutoTokenizer
+    try:
+        from tqdm.auto import tqdm
+    except ImportError:  # pragma: no cover - optional dependency
+        tqdm = None
 
     rng = random.Random(seed)
     torch.manual_seed(seed)
@@ -346,6 +355,18 @@ def train_hdpo_critic(
     resolved_device = torch.device(device) if device != "auto" else (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     )
+    data_parallel_device_ids: list[int] = []
+    if resolved_device.type == "cuda":
+        visible_cuda_devices = torch.cuda.device_count()
+        primary_index = 0 if resolved_device.index is None else int(resolved_device.index)
+        if visible_cuda_devices > 1:
+            if primary_index < 0 or primary_index >= visible_cuda_devices:
+                raise ValueError(
+                    f"Requested CUDA device index {primary_index} but only {visible_cuda_devices} visible CUDA device(s) are available."
+                )
+            data_parallel_device_ids = [primary_index] + [
+                device_id for device_id in range(visible_cuda_devices) if device_id != primary_index
+            ]
 
     tokenizer = AutoTokenizer.from_pretrained(
         encoder_name_or_path,
@@ -362,13 +383,15 @@ def train_hdpo_critic(
         encoder_name_or_path,
         trust_remote_code=trust_remote_code,
     )
+    hidden_size = int(getattr(encoder_model.config, "hidden_size"))
     encoder_model.to(resolved_device)
-    encoder_model.train(mode=finetune_encoder)
     if not finetune_encoder:
         for parameter in encoder_model.parameters():
             parameter.requires_grad = False
+    if data_parallel_device_ids:
+        encoder_model = nn.DataParallel(encoder_model, device_ids=data_parallel_device_ids)
+    encoder_model.train(mode=finetune_encoder)
 
-    hidden_size = int(getattr(encoder_model.config, "hidden_size"))
     critic = BucketConditionedDistributionCritic(
         response_dim=hidden_size,
         num_buckets=len(bucket_to_id),
@@ -377,6 +400,8 @@ def train_hdpo_critic(
         dropout=dropout,
     )
     critic.to(resolved_device)
+    if data_parallel_device_ids:
+        critic = nn.DataParallel(critic, device_ids=data_parallel_device_ids)
     critic.train()
 
     train_score_loader = DataLoader(
@@ -435,15 +460,17 @@ def train_hdpo_critic(
             return_tensors="pt",
         )
         tokenized = {key: value.to(resolved_device) for key, value in tokenized.items()}
-        outputs = encoder_model(**tokenized, output_hidden_states=False, return_dict=True)
-        attention_mask = tokenized["attention_mask"].unsqueeze(-1).to(dtype=outputs.last_hidden_state.dtype)
-        pooled = (outputs.last_hidden_state * attention_mask).sum(dim=1) / attention_mask.sum(dim=1).clamp_min(1.0)
+        outputs = encoder_model(**tokenized, output_hidden_states=False, return_dict=False)
+        last_hidden_state = outputs[0]
+        attention_mask = tokenized["attention_mask"].unsqueeze(-1).to(dtype=last_hidden_state.dtype)
+        pooled = (last_hidden_state * attention_mask).sum(dim=1) / attention_mask.sum(dim=1).clamp_min(1.0)
         return pooled
 
     def _run_epoch(
         score_loader: DataLoader,
         pair_loader: Optional[DataLoader],
         *,
+        epoch_index: int,
         train: bool,
     ) -> dict[str, float]:
         if train:
@@ -458,7 +485,19 @@ def train_hdpo_critic(
             rng.shuffle(pair_batches)
 
         metrics: list[CriticTrainingMetrics] = []
-        for step_index, score_batch in enumerate(score_loader):
+        progress = None
+        score_iterator = score_loader
+        if show_progress and tqdm is not None:
+            progress = tqdm(
+                score_loader,
+                total=len(score_loader),
+                desc=f"{'train' if train else 'eval'} epoch {epoch_index}/{num_epochs}",
+                leave=False,
+                dynamic_ncols=True,
+            )
+            score_iterator = progress
+
+        for step_index, score_batch in enumerate(score_iterator):
             maybe_pair_batch = pair_batches[step_index % len(pair_batches)] if pair_batches else None
             bucket_ids = score_batch["bucket_ids"].to(resolved_device)
             target_scores = score_batch["target_scores"].to(resolved_device)
@@ -498,6 +537,15 @@ def train_hdpo_critic(
                     steps=1,
                 )
             )
+            if progress is not None:
+                progress.set_postfix(
+                    loss=f"{metrics[-1].total_loss:.4f}",
+                    reg=f"{metrics[-1].reg_loss:.4f}",
+                    rank=f"{metrics[-1].rank_loss:.4f}",
+                )
+
+        if progress is not None:
+            progress.close()
 
         return _mean_metrics(metrics)
 
@@ -505,8 +553,10 @@ def train_hdpo_critic(
     best_eval_loss: float | None = None
     best_state: dict[str, Any] | None = None
     for epoch in range(1, num_epochs + 1):
-        train_metrics = _run_epoch(train_score_loader, train_pair_loader, train=True)
-        eval_metrics = _run_epoch(eval_score_loader, eval_pair_loader, train=False) if eval_score_loader else None
+        train_metrics = _run_epoch(train_score_loader, train_pair_loader, epoch_index=epoch, train=True)
+        eval_metrics = (
+            _run_epoch(eval_score_loader, eval_pair_loader, epoch_index=epoch, train=False) if eval_score_loader else None
+        )
         epoch_summary = {"epoch": epoch, "train": train_metrics}
         if eval_metrics is not None:
             epoch_summary["eval"] = eval_metrics
@@ -527,9 +577,11 @@ def train_hdpo_critic(
     output_path = Path(output_dir)
     ensure_dir(output_path)
     saved_encoder_name_or_path = encoder_name_or_path
+    encoder_for_save = _unwrap_module(encoder_model)
+    critic_for_save = _unwrap_module(critic)
     if finetune_encoder:
         saved_encoder_dir = output_path / "encoder"
-        encoder_model.save_pretrained(saved_encoder_dir)
+        encoder_for_save.save_pretrained(saved_encoder_dir)
         tokenizer.save_pretrained(saved_encoder_dir)
         saved_encoder_name_or_path = str(saved_encoder_dir)
 
@@ -545,7 +597,7 @@ def train_hdpo_critic(
     )
     save_hdpo_critic_bundle(
         output_path,
-        critic=critic.cpu(),
+        critic=critic_for_save.cpu(),
         bucket_to_id=bucket_to_id,
         config=bundle_config,
     )
@@ -559,6 +611,10 @@ def train_hdpo_critic(
         "pair_eval_records": len(pair_eval_records),
         "bucket_count": len(bucket_to_id),
         "finetune_encoder": finetune_encoder,
+        "resolved_device": str(resolved_device),
+        "visible_cuda_devices": torch.cuda.device_count() if torch.cuda.is_available() else 0,
+        "data_parallel_device_ids": data_parallel_device_ids,
+        "show_progress": show_progress,
         "history": history,
     }
     (output_path / "training_summary.json").write_text(
@@ -680,6 +736,7 @@ def _cmd_train(args) -> None:
         trust_remote_code=args.trust_remote_code,
         device=args.device,
         seed=args.seed,
+        show_progress=(not args.no_progress),
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
@@ -739,7 +796,7 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument("--encoder-learning-rate", type=float, help="Optional separate learning rate when fine-tuning the encoder.")
     train_parser.add_argument("--weight-decay", type=float, default=0.0, help="Optimizer weight decay.")
     train_parser.add_argument("--num-epochs", type=int, default=3, help="Number of critic training epochs.")
-    train_parser.add_argument("--max-length", type=int, default=512, help="Maximum encoder sequence length.")
+    train_parser.add_argument("--max-length", type=int, default=3072, help="Maximum encoder sequence length.")
     train_parser.add_argument("--hidden-dim", type=int, default=256, help="Hidden size of the critic MLP.")
     train_parser.add_argument("--bucket-dim", type=int, default=64, help="Bucket embedding size.")
     train_parser.add_argument("--dropout", type=float, default=0.1, help="Critic dropout.")
@@ -750,6 +807,7 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument("--trust-remote-code", action="store_true", help="Pass trust_remote_code=True to AutoModel/AutoTokenizer.")
     train_parser.add_argument("--device", default="auto", help="Torch device for critic training.")
     train_parser.add_argument("--seed", type=int, default=42, help="Random seed.")
+    train_parser.add_argument("--no-progress", action="store_true", help="Disable tqdm batch progress bars.")
     train_parser.set_defaults(func=_cmd_train)
 
     score_parser = subparsers.add_parser("score-pairs", help="Score chosen/rejected pair files with a trained HDPO critic.")
@@ -779,3 +837,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    

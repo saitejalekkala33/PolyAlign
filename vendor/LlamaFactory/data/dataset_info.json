@@ -1,6 +1,6 @@
 {
   "polyalign_train": {
-    "file_name": "train.json",
+    "file_name": "train-sample.json",
     "columns": {
       "prompt": "instruction",
       "query": "input",
@@ -9,7 +9,7 @@
     }
   },
   "polyalign_val": {
-    "file_name": "val.json",
+    "file_name": "val-sample.json",
     "columns": {
       "prompt": "instruction",
       "query": "input",
@@ -40,7 +40,7 @@
     }
   },
   "polyalign_hdpo_train": {
-    "file_name": "hdpo_train.json",
+    "file_name": "sample-hdpo_train.json",
     "ranking": true,
     "columns": {
       "prompt": "instruction",
@@ -56,7 +56,7 @@
     }
   },
   "polyalign_hdpo_val": {
-    "file_name": "hdpo_val.json",
+    "file_name": "sample-hdpo_val.json",
     "ranking": true,
     "columns": {
       "prompt": "instruction",
@@ -69,6 +69,45 @@
       "critic_bucket_id": "critic_bucket_id",
       "chosen_dist_score": "chosen_dist_score",
       "rejected_dist_score": "rejected_dist_score"
+    }
+  },
+  "qwen25_1_5b_sample_test_dpo_en": {
+    "file_name": "qwen25_1_5b_sample_test_dpo_en.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_1_5b_sample_train_dpo_en": {
+    "file_name": "qwen25_1_5b_sample_train_dpo_en.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_1_5b_sample_val_dpo_en": {
+    "file_name": "qwen25_1_5b_sample_val_dpo_en.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
     }
   }
 }

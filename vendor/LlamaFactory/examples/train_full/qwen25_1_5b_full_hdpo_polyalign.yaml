@@ -1,5 +1,5 @@
 ### model
-model_name_or_path: saves/qwen2_5-1_5b/full/dist_sft/polyalign
+model_name_or_path: saves/qwen2.5-1.5B-sample-dist-sft-en
 trust_remote_code: true
 
 ### method
@@ -11,35 +11,37 @@ pref_beta: 0.1
 pref_loss: sigmoid
 pref_ftx: 0.05
 hdpo_reg_lambda: 0.1
-hdpo_online_reg_lambda: 0.0
+hdpo_online_reg_lambda: 0.05
 hdpo_online_reg_interval: 10
 hdpo_online_max_new_tokens: 128
 hdpo_online_temperature: 0.0
 hdpo_online_top_p: 1.0
-hdpo_critic_path: null
+hdpo_critic_path: /home/umair/TW/PolyAlign/data/english/merged_sft_dedup/sample-hdpo_critic/bundle
 hdpo_critic_device: auto
+deepspeed: examples/deepspeed/ds_z3_config.json
 
 ### dataset
 dataset_dir: data
 dataset: polyalign_hdpo_train
 eval_dataset: polyalign_hdpo_val
 template: qwen
-cutoff_len: 8192
+cutoff_len: 3072
 overwrite_cache: true
 preprocessing_num_workers: 16
 dataloader_num_workers: 4
 
 ### output
-output_dir: saves/qwen2_5-1_5b/full/hdpo/polyalign
-logging_steps: 100
-save_steps: 5000
-eval_steps: 5000
+output_dir: saves/qwen2_5-1_5b-sample-hdpo
+logging_steps: 10
+# save_steps: 5000
+# eval_steps: 5000
 plot_loss: true
 overwrite_output_dir: true
-save_only_model: false
-save_total_limit: 2
-report_to: wandb
-run_name: qwen25_1_5b_full_hdpo_polyalign_camd
+save_only_model: true
+save_strategy: "no"
+# save_total_limit: 2
+report_to: none
+# run_name: qwen25_1_5b_full_hdpo_polyalign_camd
 
 ### train
 per_device_train_batch_size: 1
@@ -56,6 +58,7 @@ resume_from_checkpoint: null
 
 ### eval
 eval_strategy: steps
-load_best_model_at_end: true
-metric_for_best_model: eval_rewards/accuracies
-greater_is_better: true
+eval_steps: 1000
+load_best_model_at_end: false
+# metric_for_best_model: eval_rewards/accuracies
+# greater_is_better: true

@@ -23,3 +23,4 @@ data/chinese/
 vendor/LlamaFactory/data/
 data/english
 data/metrics/*/
+vendor/LlamaFactory/saves/
