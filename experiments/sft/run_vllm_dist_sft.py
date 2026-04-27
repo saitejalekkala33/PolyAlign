@@ -11,6 +11,14 @@ from tqdm.auto import tqdm
 from transformers import AutoTokenizer
 
 DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant."
+TOKEN_LIMIT_PREDICTION = "[MAX_TOKEN_LIMIT]"
+
+
+class VLLMHTTPError(RuntimeError):
+    def __init__(self, code: int, error_body: str) -> None:
+        self.code = code
+        self.error_body = error_body
+        super().__init__(f"vLLM HTTP {code}: {error_body}")
 
 
 def ensure_dir(path: Path) -> None:
@@ -199,6 +207,16 @@ def load_completed_indices(predictions_path: Path) -> set[int]:
     return completed
 
 
+def count_existing_token_limit_skips(predictions_path: Path) -> int:
+    if not predictions_path.exists():
+        return 0
+    count = 0
+    for row in iter_jsonl(predictions_path):
+        if row.get("finish_reason") == "skipped_token_limit":
+            count += 1
+    return count
+
+
 def clean_prediction(text: str) -> str:
     if not isinstance(text, str):
         return text
@@ -236,6 +254,42 @@ def clean_prediction(text: str) -> str:
         filtered_lines.append(line)
 
     return "\n".join(filtered_lines).strip()
+
+
+def is_token_limit_error(exc: BaseException) -> bool:
+    text = ""
+    if isinstance(exc, VLLMHTTPError):
+        text = exc.error_body
+    else:
+        text = str(exc)
+    lowered = text.lower()
+    patterns = [
+        "maximum context length",
+        "input_tokens",
+        "prompt contains",
+        "too many tokens",
+        "context length",
+        "max model len",
+        "max_model_len",
+    ]
+    return any(pattern in lowered for pattern in patterns)
+
+
+def get_error_body(exc: BaseException) -> str:
+    if isinstance(exc, VLLMHTTPError):
+        return exc.error_body
+    return str(exc)
+
+
+def estimate_prompt_tokens(tokenizer: Any, prompt: str) -> int | None:
+    try:
+        encoded = tokenizer(prompt, add_special_tokens=False)
+        input_ids = encoded.get("input_ids")
+        if isinstance(input_ids, list):
+            return len(input_ids)
+    except Exception:
+        return None
+    return None
 
 
 def call_vllm_completion_batch(
@@ -283,7 +337,7 @@ def call_vllm_completion_batch(
             body = response.read().decode("utf-8")
     except error.HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"vLLM HTTP {exc.code}: {error_body}") from exc
+        raise VLLMHTTPError(exc.code, error_body) from exc
     except error.URLError as exc:
         raise RuntimeError(f"Could not reach vLLM server at {base_url}: {exc}") from exc
 
@@ -299,6 +353,88 @@ def extract_choice_map(response: dict[str, Any], batch_size: int) -> dict[int, d
     return mapped
 
 
+def call_vllm_with_token_limit_skip(
+    *,
+    tokenizer: Any,
+    base_url: str,
+    api_key: str | None,
+    model_name: str,
+    prompts: list[str],
+    max_tokens: int,
+    temperature: float,
+    top_p: float,
+    timeout: float,
+    repetition_penalty: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    stop: list[str] | None = None,
+) -> tuple[dict[int, dict[str, Any]], dict[int, dict[str, Any]], int]:
+    try:
+        response = call_vllm_completion_batch(
+            base_url=base_url,
+            api_key=api_key,
+            model_name=model_name,
+            prompts=prompts,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            timeout=timeout,
+            repetition_penalty=repetition_penalty,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
+            stop=stop,
+        )
+        choice_map = extract_choice_map(response, len(prompts))
+        usage = response.get("usage", {})
+        usage_map = {index: usage for index in range(len(prompts))}
+        return choice_map, usage_map, 0
+    except RuntimeError as exc:
+        if not is_token_limit_error(exc):
+            raise
+
+    choice_map: dict[int, dict[str, Any]] = {}
+    usage_map: dict[int, dict[str, Any]] = {}
+    skipped = 0
+
+    for index, prompt in enumerate(prompts):
+        try:
+            response = call_vllm_completion_batch(
+                base_url=base_url,
+                api_key=api_key,
+                model_name=model_name,
+                prompts=[prompt],
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=top_p,
+                timeout=timeout,
+                repetition_penalty=repetition_penalty,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                stop=stop,
+            )
+            single_choice_map = extract_choice_map(response, 1)
+            choice_map[index] = single_choice_map.get(0, {})
+            usage_map[index] = response.get("usage", {})
+        except RuntimeError as exc:
+            if not is_token_limit_error(exc):
+                raise
+            skipped += 1
+            choice_map[index] = {
+                "text": TOKEN_LIMIT_PREDICTION,
+                "finish_reason": "skipped_token_limit",
+                "token_limit_error": get_error_body(exc),
+            }
+            usage_map[index] = {
+                "skipped": True,
+                "skip_reason": "token_limit",
+                "max_tokens": max_tokens,
+                "estimated_prompt_tokens": estimate_prompt_tokens(tokenizer, prompt),
+                "error": get_error_body(exc),
+            }
+
+    return choice_map, usage_map, skipped
+
+
 def write_progress(
     progress_path: Path,
     *,
@@ -306,6 +442,7 @@ def write_progress(
     records_total: int,
     records_scheduled: int,
     records_completed: int,
+    skipped_token_limit: int,
     elapsed_seconds: float,
     predictions_path: Path,
     batch_size: int,
@@ -317,6 +454,7 @@ def write_progress(
             "records_total": records_total,
             "records_scheduled": records_scheduled,
             "records_completed": records_completed,
+            "skipped_token_limit": skipped_token_limit,
             "elapsed_seconds": round(elapsed_seconds, 3),
             "predictions_path": str(predictions_path),
             "batch_size": batch_size,
@@ -364,6 +502,7 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     completed_indices = load_completed_indices(predictions_path) if args.resume else set()
+    existing_skipped_token_limit = count_existing_token_limit_skips(predictions_path) if args.resume else 0
     remaining = [(source_index, example) for source_index, example in sampled if source_index not in completed_indices]
 
     config = {
@@ -386,6 +525,7 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         "timeout": args.timeout,
         "batch_size": args.batch_size,
         "resume": args.resume,
+        "token_limit_prediction": TOKEN_LIMIT_PREDICTION,
     }
     write_json(config_path, config)
 
@@ -401,12 +541,14 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
     started = time.time()
     already_completed = len(sampled) - len(remaining)
     completed_count = already_completed
+    skipped_token_limit_count = existing_skipped_token_limit
     write_progress(
         progress_path,
         status="running",
         records_total=len(all_records),
         records_scheduled=len(sampled),
         records_completed=completed_count,
+        skipped_token_limit=skipped_token_limit_count,
         elapsed_seconds=0.0,
         predictions_path=predictions_path,
         batch_size=args.batch_size,
@@ -425,7 +567,9 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
                 render_chat_prompt(tokenizer, example, conditioning_mode=args.conditioning_mode)
                 for _source_index, example in batch
             ]
-            response = call_vllm_completion_batch(
+
+            choice_map, usage_map, skipped_in_batch = call_vllm_with_token_limit_skip(
+                tokenizer=tokenizer,
                 base_url=args.base_url,
                 api_key=args.api_key,
                 model_name=args.model_name,
@@ -439,12 +583,16 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
                 presence_penalty=args.presence_penalty,
                 stop=stop_sequences,
             )
-            choice_map = extract_choice_map(response, len(batch))
-            batch_usage = response.get("usage", {})
+            skipped_token_limit_count += skipped_in_batch
 
             for batch_index, (source_index, example) in enumerate(batch):
                 choice = choice_map.get(batch_index, {})
-                prediction = clean_prediction(choice.get("text") or "")
+                finish_reason = choice.get("finish_reason")
+                if finish_reason == "skipped_token_limit":
+                    prediction = TOKEN_LIMIT_PREDICTION
+                else:
+                    prediction = clean_prediction(choice.get("text") or "")
+
                 row = {
                     "source_index": source_index,
                     "instruction": get_instruction(example),
@@ -461,10 +609,13 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
                     "length_bin": example.get("length_bin", ""),
                     "family": example.get("family", ""),
                     "track": example.get("track", ""),
-                    "finish_reason": choice.get("finish_reason"),
-                    "usage": batch_usage,
+                    "finish_reason": finish_reason,
+                    "usage": usage_map.get(batch_index, {}),
                     "batch_index": batch_index,
                 }
+                if finish_reason == "skipped_token_limit":
+                    row["skip_reason"] = "token_limit"
+                    row["token_limit_error"] = choice.get("token_limit_error", "")
                 handle.write(json.dumps(row, ensure_ascii=False) + "\n")
                 completed_count += 1
 
@@ -475,6 +626,7 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
                 records_total=len(all_records),
                 records_scheduled=len(sampled),
                 records_completed=completed_count,
+                skipped_token_limit=skipped_token_limit_count,
                 elapsed_seconds=time.time() - started,
                 predictions_path=predictions_path,
                 batch_size=args.batch_size,
@@ -487,6 +639,7 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         "records_scheduled": len(sampled),
         "records_completed": completed_count,
         "records_remaining": len(sampled) - completed_count,
+        "skipped_token_limit": skipped_token_limit_count,
         "model_name": args.model_name,
         "tokenizer_name_or_path": args.tokenizer_name_or_path,
         "conditioning_mode": args.conditioning_mode,
@@ -495,6 +648,7 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         "elapsed_seconds": round(time.time() - started, 3),
         "batch_size": args.batch_size,
         "resume": args.resume,
+        "token_limit_prediction": TOKEN_LIMIT_PREDICTION,
     }
     write_json(summary_path, summary)
     write_progress(
@@ -503,6 +657,7 @@ def run_dist_sft_inference(args: argparse.Namespace) -> dict[str, Any]:
         records_total=len(all_records),
         records_scheduled=len(sampled),
         records_completed=completed_count,
+        skipped_token_limit=skipped_token_limit_count,
         elapsed_seconds=time.time() - started,
         predictions_path=predictions_path,
         batch_size=args.batch_size,
