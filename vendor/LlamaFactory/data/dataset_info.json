@@ -18,7 +18,7 @@
     }
   },
   "polyalign_dist_sft_train": {
-    "file_name": "dist_sft_train.json",
+    "file_name": "dist_sft_train-en.json",
     "columns": {
       "prompt": "instruction",
       "query": "input",
@@ -29,7 +29,7 @@
     }
   },
   "polyalign_dist_sft_val": {
-    "file_name": "dist_sft_val.json",
+    "file_name": "dist_sft_val-en.json",
     "columns": {
       "prompt": "instruction",
       "query": "input",
@@ -99,6 +99,162 @@
   },
   "qwen25_1_5b_sample_val_dpo_en": {
     "file_name": "qwen25_1_5b_sample_val_dpo_en.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "gemma2_2b_test_dpo_zh": {
+    "file_name": "gemma2_2b_test_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "gemma2_2b_train_dpo_zh": {
+    "file_name": "gemma2_2b_train_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "gemma2_2b_val_dpo_zh": {
+    "file_name": "gemma2_2b_val_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "llama32_3b_test_dpo_zh": {
+    "file_name": "llama32_3b_test_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "llama32_3b_train_dpo_zh": {
+    "file_name": "llama32_3b_train_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "llama32_3b_val_dpo_zh": {
+    "file_name": "llama32_3b_val_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_1_5b_test_dpo_zh": {
+    "file_name": "qwen25_1_5b_test_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_1_5b_train_dpo_zh": {
+    "file_name": "qwen25_1_5b_train_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_1_5b_val_dpo_zh": {
+    "file_name": "qwen25_1_5b_val_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_3b_test_dpo_zh": {
+    "file_name": "qwen25_3b_test_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_3b_train_dpo_zh": {
+    "file_name": "qwen25_3b_train_dpo_zh.json",
+    "ranking": true,
+    "formatting": "alpaca",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "history": "history",
+      "system": "system",
+      "chosen": "chosen",
+      "rejected": "rejected"
+    }
+  },
+  "qwen25_3b_val_dpo_zh": {
+    "file_name": "qwen25_3b_val_dpo_zh.json",
     "ranking": true,
     "formatting": "alpaca",
     "columns": {
