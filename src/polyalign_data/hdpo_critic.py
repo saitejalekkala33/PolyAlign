@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import importlib.util
 import json
 import math
+import os
 import random
 import sys
 from collections.abc import Iterator
@@ -14,7 +16,7 @@ from typing import Any, Optional
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, DistributedSampler
 
 from polyalign_data.io_utils import ensure_dir, read_json
 from polyalign_data.text import normalize_text
@@ -39,6 +41,11 @@ load_hdpo_critic_bundle = _hdpo_critic_module.load_hdpo_critic_bundle
 predict_hdpo_critic_scores = _hdpo_critic_module.predict_hdpo_critic_scores
 save_hdpo_critic_bundle = _hdpo_critic_module.save_hdpo_critic_bundle
 
+
+DEFAULT_ENCODER_LEARNING_RATE = 1.0e-5
+DEFAULT_MAX_GRAD_NORM = 1.0
+SCORE_TIE_ATOL = 1.0e-10
+COLLAPSE_MIN_DISTINCT_PAIRS = 4
 
 SOURCE_SPLIT_TO_TARGET = {
     "train": "train",
@@ -93,6 +100,27 @@ def _resolve_text(record: dict[str, Any], *keys: str) -> str:
             if text:
                 return text
     return ""
+
+
+def _exact_match_key(text: str) -> str:
+    return normalize_text(text).casefold()
+
+
+def _pair_responses_are_equivalent(record: dict[str, Any]) -> bool:
+    chosen = _resolve_text(record, "chosen", "chosen_answer", "chosen_output", "human_answer")
+    rejected = _resolve_text(record, "rejected", "rejected_answer", "rejected_output", "model_rejected")
+    return bool(chosen and rejected and _exact_match_key(chosen) == _exact_match_key(rejected))
+
+
+def _drop_exact_match_pairs(records: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
+    kept_records: list[dict[str, Any]] = []
+    skipped = 0
+    for record in records:
+        if _pair_responses_are_equivalent(record):
+            skipped += 1
+        else:
+            kept_records.append(record)
+    return kept_records, skipped
 
 
 def _resolve_bucket_id(record: dict[str, Any]) -> str:
@@ -281,7 +309,187 @@ def _load_records_from_paths(paths: list[str | Path]) -> list[dict[str, Any]]:
 
 
 def _unwrap_module(module: nn.Module) -> nn.Module:
-    return module.module if isinstance(module, nn.DataParallel) else module
+    return module.module if hasattr(module, "module") else module
+
+
+def _is_distributed_training() -> bool:
+    return int(os.environ.get("WORLD_SIZE", "1")) > 1
+
+
+def _distributed_rank() -> int:
+    return int(os.environ.get("RANK", "0"))
+
+
+def _local_rank() -> int:
+    return int(os.environ.get("LOCAL_RANK", "0"))
+
+
+def _init_distributed_if_needed(resolved_device: torch.device) -> tuple[bool, int, int, int]:
+    if not _is_distributed_training():
+        return False, 0, 0, 1
+
+    if not torch.distributed.is_available():
+        raise RuntimeError("torch.distributed is not available, but WORLD_SIZE > 1.")
+
+    rank = _distributed_rank()
+    local_rank = _local_rank()
+    world_size = int(os.environ.get("WORLD_SIZE", "1"))
+    backend = "nccl" if resolved_device.type == "cuda" else "gloo"
+    if not torch.distributed.is_initialized():
+        torch.distributed.init_process_group(backend=backend)
+    if resolved_device.type == "cuda":
+        torch.cuda.set_device(local_rank)
+    return True, rank, local_rank, world_size
+
+
+def _resolve_torch_dtype(value: Optional[str]) -> torch.dtype | None:
+    if value is None:
+        return None
+    normalized = normalize_text(value).lower()
+    if not normalized or normalized in {"auto", "none"}:
+        return None
+    if normalized in {"float16", "fp16", "half"}:
+        return torch.float16
+    if normalized in {"bfloat16", "bf16"}:
+        return torch.bfloat16
+    if normalized in {"float32", "fp32", "full"}:
+        return torch.float32
+    raise ValueError(f"Unsupported torch dtype for HDPO critic encoder: {value}")
+
+
+def _module_parameter_dtype(module: nn.Module) -> torch.dtype:
+    return next(module.parameters()).dtype
+
+
+def _clone_state_dict(module: nn.Module) -> dict[str, Any]:
+    cloned: dict[str, Any] = {}
+    for key, value in module.state_dict().items():
+        if torch.is_tensor(value):
+            cloned[key] = value.detach().cpu().clone()
+        else:
+            cloned[key] = copy.deepcopy(value)
+    return cloned
+
+
+def _validate_score_records(records: list[dict[str, Any]], *, label: str) -> None:
+    missing_text_ids: list[str] = []
+    missing_target_ids: list[str] = []
+    invalid_target_ids: list[str] = []
+    for index, record in enumerate(records):
+        record_id = str(record.get("id", f"row-{index}"))
+        if not normalize_text(record.get("response_text", "")):
+            missing_text_ids.append(record_id)
+        if "target_score" not in record:
+            missing_target_ids.append(record_id)
+            continue
+        try:
+            target_score = float(record.get("target_score"))
+        except (TypeError, ValueError):
+            invalid_target_ids.append(record_id)
+            continue
+        if not math.isfinite(target_score):
+            invalid_target_ids.append(record_id)
+
+    problems: list[str] = []
+    if missing_text_ids:
+        preview = ", ".join(missing_text_ids[:5])
+        problems.append(f"{len(missing_text_ids)} missing/blank response_text values, e.g. {preview}")
+    if missing_target_ids:
+        preview = ", ".join(missing_target_ids[:5])
+        problems.append(f"{len(missing_target_ids)} missing target_score values, e.g. {preview}")
+    if invalid_target_ids:
+        preview = ", ".join(invalid_target_ids[:5])
+        problems.append(f"{len(invalid_target_ids)} non-finite target_score values, e.g. {preview}")
+    if problems:
+        joined = "; ".join(problems)
+        raise ValueError(
+            f"Invalid HDPO critic {label} regression records: {joined}. "
+            "Regenerate critic targets without --drop-text and with aligned feature rows."
+        )
+
+
+def _validate_pair_records(records: list[dict[str, Any]], *, label: str) -> None:
+    missing_chosen_ids: list[str] = []
+    missing_rejected_ids: list[str] = []
+    for index, record in enumerate(records):
+        record_id = str(record.get("id", f"row-{index}"))
+        chosen = _resolve_text(record, "chosen", "chosen_answer", "chosen_output", "human_answer")
+        rejected = _resolve_text(record, "rejected", "rejected_answer", "rejected_output", "model_rejected")
+        if not chosen:
+            missing_chosen_ids.append(record_id)
+        if not rejected:
+            missing_rejected_ids.append(record_id)
+
+    problems: list[str] = []
+    if missing_chosen_ids:
+        preview = ", ".join(missing_chosen_ids[:5])
+        problems.append(f"{len(missing_chosen_ids)} missing chosen responses, e.g. {preview}")
+    if missing_rejected_ids:
+        preview = ", ".join(missing_rejected_ids[:5])
+        problems.append(f"{len(missing_rejected_ids)} missing rejected responses, e.g. {preview}")
+    if problems:
+        joined = "; ".join(problems)
+        raise ValueError(f"Invalid HDPO critic {label} pair records: {joined}.")
+
+
+def _score_pair_diagnostics(
+    chosen_texts: list[str],
+    rejected_texts: list[str],
+    chosen_scores: list[float],
+    rejected_scores: list[float],
+    *,
+    tie_atol: float = SCORE_TIE_ATOL,
+) -> dict[str, Any]:
+    if not (len(chosen_texts) == len(rejected_texts) == len(chosen_scores) == len(rejected_scores)):
+        raise ValueError("Score diagnostic inputs must have matching lengths.")
+
+    all_scores = chosen_scores + rejected_scores
+    score_min = min(all_scores) if all_scores else 0.0
+    score_max = max(all_scores) if all_scores else 0.0
+    score_mean = mean(all_scores) if all_scores else 0.0
+    score_variance = mean([(score - score_mean) ** 2 for score in all_scores]) if all_scores else 0.0
+    distinct_text_pairs = 0
+    equal_score_records = 0
+    distinct_text_equal_score_records = 0
+    for chosen_text, rejected_text, chosen_score, rejected_score in zip(
+        chosen_texts,
+        rejected_texts,
+        chosen_scores,
+        rejected_scores,
+        strict=True,
+    ):
+        scores_tied = math.isclose(chosen_score, rejected_score, rel_tol=0.0, abs_tol=tie_atol)
+        if scores_tied:
+            equal_score_records += 1
+        if chosen_text != rejected_text:
+            distinct_text_pairs += 1
+            if scores_tied:
+                distinct_text_equal_score_records += 1
+
+    return {
+        "score_min": round(float(score_min), 10),
+        "score_max": round(float(score_max), 10),
+        "score_range": round(float(score_max - score_min), 10),
+        "score_std": round(float(math.sqrt(score_variance)), 10),
+        "equal_score_records": equal_score_records,
+        "distinct_text_pairs": distinct_text_pairs,
+        "distinct_text_equal_score_records": distinct_text_equal_score_records,
+        "all_scores_tied": bool(all_scores and math.isclose(score_min, score_max, rel_tol=0.0, abs_tol=tie_atol)),
+    }
+
+
+def _raise_if_score_collapse(diagnostics: dict[str, Any], *, input_path: Path) -> None:
+    distinct_pairs = int(diagnostics.get("distinct_text_pairs", 0))
+    distinct_ties = int(diagnostics.get("distinct_text_equal_score_records", 0))
+    all_scores_tied = bool(diagnostics.get("all_scores_tied", False))
+    if distinct_pairs >= COLLAPSE_MIN_DISTINCT_PAIRS and (all_scores_tied or distinct_ties == distinct_pairs):
+        raise ValueError(
+            "HDPO critic scoring collapsed: every distinct chosen/rejected pair in "
+            f"{input_path} received the same score. Diagnostics: {json.dumps(diagnostics, sort_keys=True)}. "
+            "This usually means the critic bundle was trained from blank response_text values or the encoder "
+            "fine-tuning collapsed. Regenerate the critic targets and retrain; pass --allow-constant-scores only "
+            "for debugging."
+        )
 
 
 @dataclass
@@ -325,6 +533,10 @@ def train_hdpo_critic(
     rank_lambda: float = 1.0,
     encoder_learning_rate: Optional[float] = None,
     finetune_encoder: bool = False,
+    max_grad_norm: float = DEFAULT_MAX_GRAD_NORM,
+    torch_dtype: Optional[str] = None,
+    gradient_checkpointing: bool = False,
+    fix_mistral_regex: bool = False,
     trust_remote_code: bool = False,
     device: str = "auto",
     seed: int = 42,
@@ -343,8 +555,17 @@ def train_hdpo_critic(
     eval_records = _load_records_from_paths(eval_paths or [])
     pair_train_records = _load_records_from_paths(pair_train_paths or [])
     pair_eval_records = _load_records_from_paths(pair_eval_paths or [])
+    pair_train_records, skipped_exact_pair_train_records = _drop_exact_match_pairs(pair_train_records)
+    pair_eval_records, skipped_exact_pair_eval_records = _drop_exact_match_pairs(pair_eval_records)
     if not train_records:
         raise ValueError("HDPO critic training requires at least one regression training record.")
+    _validate_score_records(train_records, label="train")
+    if eval_records:
+        _validate_score_records(eval_records, label="eval")
+    if pair_train_records:
+        _validate_pair_records(pair_train_records, label="train")
+    if pair_eval_records:
+        _validate_pair_records(pair_eval_records, label="eval")
     bucket_names = {UNKNOWN_BUCKET}
     for record in train_records + eval_records + pair_train_records + pair_eval_records:
         bucket_id = _resolve_bucket_id(record)
@@ -355,8 +576,13 @@ def train_hdpo_critic(
     resolved_device = torch.device(device) if device != "auto" else (
         torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     )
+    distributed, rank, local_rank, world_size = _init_distributed_if_needed(resolved_device)
+    is_main_process = rank == 0
+    if distributed and resolved_device.type == "cuda":
+        resolved_device = torch.device("cuda", local_rank)
+
     data_parallel_device_ids: list[int] = []
-    if resolved_device.type == "cuda":
+    if resolved_device.type == "cuda" and not distributed:
         visible_cuda_devices = torch.cuda.device_count()
         primary_index = 0 if resolved_device.index is None else int(resolved_device.index)
         if visible_cuda_devices > 1:
@@ -368,28 +594,46 @@ def train_hdpo_critic(
                 device_id for device_id in range(visible_cuda_devices) if device_id != primary_index
             ]
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        encoder_name_or_path,
-        trust_remote_code=trust_remote_code,
-        use_fast=True,
-    )
+    tokenizer_kwargs: dict[str, Any] = {
+        "trust_remote_code": trust_remote_code,
+        "use_fast": True,
+    }
+    if fix_mistral_regex:
+        tokenizer_kwargs["fix_mistral_regex"] = True
+    tokenizer = AutoTokenizer.from_pretrained(encoder_name_or_path, **tokenizer_kwargs)
     if tokenizer.pad_token_id is None:
         if tokenizer.eos_token is not None:
             tokenizer.pad_token = tokenizer.eos_token
         elif tokenizer.bos_token is not None:
             tokenizer.pad_token = tokenizer.bos_token
 
-    encoder_model = AutoModel.from_pretrained(
-        encoder_name_or_path,
-        trust_remote_code=trust_remote_code,
-    )
+    resolved_torch_dtype = _resolve_torch_dtype(torch_dtype)
+    model_kwargs: dict[str, Any] = {"trust_remote_code": trust_remote_code}
+    if resolved_torch_dtype is not None:
+        model_kwargs["torch_dtype"] = resolved_torch_dtype
+    encoder_model = AutoModel.from_pretrained(encoder_name_or_path, **model_kwargs)
     hidden_size = int(getattr(encoder_model.config, "hidden_size"))
+    if gradient_checkpointing:
+        if not finetune_encoder:
+            raise ValueError("--gradient-checkpointing only applies when --finetune-encoder is enabled.")
+        if hasattr(encoder_model, "gradient_checkpointing_enable"):
+            encoder_model.gradient_checkpointing_enable()
+        else:
+            raise ValueError("The selected encoder does not support gradient checkpointing.")
+        if hasattr(encoder_model.config, "use_cache"):
+            encoder_model.config.use_cache = False
     encoder_model.to(resolved_device)
     if not finetune_encoder:
         for parameter in encoder_model.parameters():
             parameter.requires_grad = False
     if data_parallel_device_ids:
         encoder_model = nn.DataParallel(encoder_model, device_ids=data_parallel_device_ids)
+    elif distributed and finetune_encoder:
+        encoder_model = nn.parallel.DistributedDataParallel(
+            encoder_model,
+            device_ids=[local_rank] if resolved_device.type == "cuda" else None,
+            output_device=local_rank if resolved_device.type == "cuda" else None,
+        )
     encoder_model.train(mode=finetune_encoder)
 
     critic = BucketConditionedDistributionCritic(
@@ -402,51 +646,94 @@ def train_hdpo_critic(
     critic.to(resolved_device)
     if data_parallel_device_ids:
         critic = nn.DataParallel(critic, device_ids=data_parallel_device_ids)
+    elif distributed:
+        critic = nn.parallel.DistributedDataParallel(
+            critic,
+            device_ids=[local_rank] if resolved_device.type == "cuda" else None,
+            output_device=local_rank if resolved_device.type == "cuda" else None,
+        )
     critic.train()
 
+    train_score_dataset = ResponseScoreDataset(train_records, bucket_to_id)
+    eval_score_dataset = ResponseScoreDataset(eval_records, bucket_to_id) if eval_records else None
+    train_pair_dataset = PairRankingDataset(pair_train_records, bucket_to_id) if pair_train_records else None
+    eval_pair_dataset = PairRankingDataset(pair_eval_records, bucket_to_id) if pair_eval_records else None
+    train_score_sampler = (
+        DistributedSampler(train_score_dataset, num_replicas=world_size, rank=rank, shuffle=True, seed=seed)
+        if distributed
+        else None
+    )
+    eval_score_sampler = (
+        DistributedSampler(eval_score_dataset, num_replicas=world_size, rank=rank, shuffle=False)
+        if distributed and eval_score_dataset is not None
+        else None
+    )
+    train_pair_sampler = (
+        DistributedSampler(train_pair_dataset, num_replicas=world_size, rank=rank, shuffle=True, seed=seed)
+        if distributed and train_pair_dataset is not None
+        else None
+    )
+    eval_pair_sampler = (
+        DistributedSampler(eval_pair_dataset, num_replicas=world_size, rank=rank, shuffle=False)
+        if distributed and eval_pair_dataset is not None
+        else None
+    )
+
     train_score_loader = DataLoader(
-        ResponseScoreDataset(train_records, bucket_to_id),
+        train_score_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=(train_score_sampler is None),
+        sampler=train_score_sampler,
         collate_fn=_collate_score_batch,
     )
     eval_score_loader = (
         DataLoader(
-            ResponseScoreDataset(eval_records, bucket_to_id),
+            eval_score_dataset,
             batch_size=batch_size,
             shuffle=False,
+            sampler=eval_score_sampler,
             collate_fn=_collate_score_batch,
         )
-        if eval_records
+        if eval_score_dataset is not None
         else None
     )
     train_pair_loader = (
         DataLoader(
-            PairRankingDataset(pair_train_records, bucket_to_id),
+            train_pair_dataset,
             batch_size=pair_batch_size,
-            shuffle=True,
+            shuffle=(train_pair_sampler is None),
+            sampler=train_pair_sampler,
             collate_fn=_collate_pair_batch,
         )
-        if pair_train_records
+        if train_pair_dataset is not None
         else None
     )
     eval_pair_loader = (
         DataLoader(
-            PairRankingDataset(pair_eval_records, bucket_to_id),
+            eval_pair_dataset,
             batch_size=pair_batch_size,
             shuffle=False,
+            sampler=eval_pair_sampler,
             collate_fn=_collate_pair_batch,
         )
-        if pair_eval_records
+        if eval_pair_dataset is not None
         else None
     )
 
-    parameter_groups: list[dict[str, Any]] = [{"params": list(critic.parameters()), "lr": learning_rate}]
+    critic_parameters = [parameter for parameter in critic.parameters() if parameter.requires_grad]
+    optimized_parameters = list(critic_parameters)
+    parameter_groups: list[dict[str, Any]] = [{"params": critic_parameters, "lr": learning_rate}]
+    resolved_encoder_learning_rate: float | None = None
     if finetune_encoder:
+        resolved_encoder_learning_rate = (
+            encoder_learning_rate if encoder_learning_rate is not None else min(learning_rate, DEFAULT_ENCODER_LEARNING_RATE)
+        )
+        encoder_parameters = [parameter for parameter in encoder_model.parameters() if parameter.requires_grad]
+        optimized_parameters.extend(encoder_parameters)
         parameter_groups.append(
             {
-                "params": [parameter for parameter in encoder_model.parameters() if parameter.requires_grad],
-                "lr": encoder_learning_rate or learning_rate,
+                "params": encoder_parameters,
+                "lr": resolved_encoder_learning_rate,
             }
         )
     optimizer = torch.optim.AdamW(parameter_groups, weight_decay=weight_decay)
@@ -480,6 +767,15 @@ def train_hdpo_critic(
             critic.eval()
             encoder_model.eval()
 
+        if distributed:
+            score_sampler = getattr(score_loader, "sampler", None)
+            if hasattr(score_sampler, "set_epoch"):
+                score_sampler.set_epoch(epoch_index)
+            if pair_loader is not None:
+                pair_sampler = getattr(pair_loader, "sampler", None)
+                if hasattr(pair_sampler, "set_epoch"):
+                    pair_sampler.set_epoch(epoch_index)
+
         pair_batches = list(pair_loader) if pair_loader is not None else []
         if train and pair_batches:
             rng.shuffle(pair_batches)
@@ -487,7 +783,7 @@ def train_hdpo_critic(
         metrics: list[CriticTrainingMetrics] = []
         progress = None
         score_iterator = score_loader
-        if show_progress and tqdm is not None:
+        if show_progress and tqdm is not None and is_main_process:
             progress = tqdm(
                 score_loader,
                 total=len(score_loader),
@@ -503,14 +799,15 @@ def train_hdpo_critic(
             target_scores = score_batch["target_scores"].to(resolved_device)
 
             with torch.set_grad_enabled(train):
-                response_embeddings = _encode_with_grad(score_batch["texts"])
+                critic_input_dtype = _module_parameter_dtype(critic)
+                response_embeddings = _encode_with_grad(score_batch["texts"]).to(dtype=critic_input_dtype)
                 pred_scores = critic(response_embeddings, bucket_ids)
                 chosen_pred_scores = None
                 rejected_pred_scores = None
                 if maybe_pair_batch is not None:
                     pair_bucket_ids = maybe_pair_batch["bucket_ids"].to(resolved_device)
-                    chosen_embeddings = _encode_with_grad(maybe_pair_batch["chosen_texts"])
-                    rejected_embeddings = _encode_with_grad(maybe_pair_batch["rejected_texts"])
+                    chosen_embeddings = _encode_with_grad(maybe_pair_batch["chosen_texts"]).to(dtype=critic_input_dtype)
+                    rejected_embeddings = _encode_with_grad(maybe_pair_batch["rejected_texts"]).to(dtype=critic_input_dtype)
                     chosen_pred_scores = critic(chosen_embeddings, pair_bucket_ids)
                     rejected_pred_scores = critic(rejected_embeddings, pair_bucket_ids)
 
@@ -527,6 +824,8 @@ def train_hdpo_critic(
             if train:
                 optimizer.zero_grad(set_to_none=True)
                 critic_loss.loss.backward()
+                if max_grad_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(optimized_parameters, max_grad_norm)
                 optimizer.step()
 
             metrics.append(
@@ -564,8 +863,8 @@ def train_hdpo_critic(
             if best_eval_loss is None or eval_loss < best_eval_loss:
                 best_eval_loss = eval_loss
                 best_state = {
-                    "critic": critic.state_dict(),
-                    "encoder": encoder_model.state_dict() if finetune_encoder else None,
+                    "critic": _clone_state_dict(critic),
+                    "encoder": _clone_state_dict(encoder_model) if finetune_encoder else None,
                 }
         history.append(epoch_summary)
 
@@ -574,34 +873,8 @@ def train_hdpo_critic(
         if finetune_encoder and best_state["encoder"] is not None:
             encoder_model.load_state_dict(best_state["encoder"])
 
-    output_path = Path(output_dir)
-    ensure_dir(output_path)
     saved_encoder_name_or_path = encoder_name_or_path
-    encoder_for_save = _unwrap_module(encoder_model)
-    critic_for_save = _unwrap_module(critic)
-    if finetune_encoder:
-        saved_encoder_dir = output_path / "encoder"
-        encoder_for_save.save_pretrained(saved_encoder_dir)
-        tokenizer.save_pretrained(saved_encoder_dir)
-        saved_encoder_name_or_path = str(saved_encoder_dir)
-
-    bundle_config = HDPOCriticBundleConfig(
-        encoder_name_or_path=saved_encoder_name_or_path,
-        response_dim=hidden_size,
-        num_buckets=len(bucket_to_id),
-        max_length=max_length,
-        bucket_dim=bucket_dim,
-        hidden_dim=hidden_dim,
-        dropout=dropout,
-        trust_remote_code=trust_remote_code,
-    )
-    save_hdpo_critic_bundle(
-        output_path,
-        critic=critic_for_save.cpu(),
-        bucket_to_id=bucket_to_id,
-        config=bundle_config,
-    )
-
+    output_path = Path(output_dir)
     summary = {
         "output_dir": str(output_path),
         "encoder_name_or_path": saved_encoder_name_or_path,
@@ -609,18 +882,61 @@ def train_hdpo_critic(
         "eval_records": len(eval_records),
         "pair_train_records": len(pair_train_records),
         "pair_eval_records": len(pair_eval_records),
+        "skipped_exact_pair_train_records": skipped_exact_pair_train_records,
+        "skipped_exact_pair_eval_records": skipped_exact_pair_eval_records,
         "bucket_count": len(bucket_to_id),
         "finetune_encoder": finetune_encoder,
+        "encoder_learning_rate": resolved_encoder_learning_rate,
+        "critic_learning_rate": learning_rate,
+        "max_grad_norm": max_grad_norm,
+        "torch_dtype": str(resolved_torch_dtype) if resolved_torch_dtype is not None else None,
+        "gradient_checkpointing": gradient_checkpointing,
+        "fix_mistral_regex": fix_mistral_regex,
+        "distributed": distributed,
+        "distributed_rank": rank,
+        "distributed_world_size": world_size,
+        "is_main_process": is_main_process,
         "resolved_device": str(resolved_device),
         "visible_cuda_devices": torch.cuda.device_count() if torch.cuda.is_available() else 0,
         "data_parallel_device_ids": data_parallel_device_ids,
         "show_progress": show_progress,
         "history": history,
     }
-    (output_path / "training_summary.json").write_text(
-        json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+
+    if is_main_process:
+        ensure_dir(output_path)
+        encoder_for_save = _unwrap_module(encoder_model)
+        critic_for_save = _unwrap_module(critic)
+        if finetune_encoder:
+            saved_encoder_dir = output_path / "encoder"
+            encoder_for_save.save_pretrained(saved_encoder_dir)
+            tokenizer.save_pretrained(saved_encoder_dir)
+            saved_encoder_name_or_path = str(saved_encoder_dir)
+            summary["encoder_name_or_path"] = saved_encoder_name_or_path
+
+        bundle_config = HDPOCriticBundleConfig(
+            encoder_name_or_path=saved_encoder_name_or_path,
+            response_dim=hidden_size,
+            num_buckets=len(bucket_to_id),
+            max_length=max_length,
+            bucket_dim=bucket_dim,
+            hidden_dim=hidden_dim,
+            dropout=dropout,
+            trust_remote_code=trust_remote_code,
+        )
+        save_hdpo_critic_bundle(
+            output_path,
+            critic=critic_for_save.cpu(),
+            bucket_to_id=bucket_to_id,
+            config=bundle_config,
+        )
+        (output_path / "training_summary.json").write_text(
+            json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    if distributed:
+        torch.distributed.barrier()
     return summary
 
 
@@ -631,10 +947,12 @@ def score_hdpo_pair_file(
     critic_path: str | Path,
     batch_size: int = 16,
     device: str = "auto",
+    allow_constant_scores: bool = False,
 ) -> dict[str, Any]:
     input_file = Path(input_path)
     output_file = Path(output_path)
     records = _read_records(input_file)
+    _validate_pair_records(records, label="score")
     bundle = load_hdpo_critic_bundle(critic_path, device=device)
 
     chosen_texts = [_resolve_text(record, "chosen", "chosen_answer", "chosen_output", "human_answer") for record in records]
@@ -642,12 +960,17 @@ def score_hdpo_pair_file(
     bucket_names = [_resolve_bucket_id(record) for record in records]
     bucket_ids = bucket_ids_from_names(bundle.bucket_to_id, bucket_names)
 
-    all_texts = chosen_texts + rejected_texts
-    all_bucket_ids = bucket_ids + bucket_ids
+    all_texts: list[str] = []
+    all_bucket_ids: list[int] = []
+    for chosen_text, rejected_text, bucket_id in zip(chosen_texts, rejected_texts, bucket_ids, strict=True):
+        all_texts.extend([chosen_text, rejected_text])
+        all_bucket_ids.extend([bucket_id, bucket_id])
     score_tensor = predict_hdpo_critic_scores(bundle, all_texts, all_bucket_ids, batch_size=batch_size)
-    midpoint = len(records)
-    chosen_scores = score_tensor[:midpoint].tolist()
-    rejected_scores = score_tensor[midpoint:].tolist()
+    chosen_scores = score_tensor[0::2].tolist()
+    rejected_scores = score_tensor[1::2].tolist()
+    score_diagnostics = _score_pair_diagnostics(chosen_texts, rejected_texts, chosen_scores, rejected_scores)
+    if not allow_constant_scores:
+        _raise_if_score_collapse(score_diagnostics, input_path=input_file)
 
     scored_records: list[dict[str, Any]] = []
     for record, critic_bucket_id, chosen_score, rejected_score in zip(
@@ -665,6 +988,7 @@ def score_hdpo_pair_file(
         "output_path": str(output_file),
         "records": len(scored_records),
         "critic_path": str(Path(critic_path)),
+        "score_diagnostics": score_diagnostics,
     }
 
 
@@ -675,6 +999,7 @@ def score_hdpo_pair_root(
     critic_path: str | Path,
     batch_size: int = 16,
     device: str = "auto",
+    allow_constant_scores: bool = False,
 ) -> dict[str, Any]:
     input_dir = Path(input_root)
     output_dir = Path(output_root)
@@ -690,6 +1015,7 @@ def score_hdpo_pair_root(
                 critic_path=critic_path,
                 batch_size=batch_size,
                 device=device,
+                allow_constant_scores=allow_constant_scores,
             )
             split_entries.append({"dataset": dataset_name, **result})
         if split_entries:
@@ -733,12 +1059,17 @@ def _cmd_train(args) -> None:
         rank_lambda=args.rank_lambda,
         encoder_learning_rate=args.encoder_learning_rate,
         finetune_encoder=args.finetune_encoder,
+        max_grad_norm=args.max_grad_norm,
+        torch_dtype=args.torch_dtype,
+        gradient_checkpointing=args.gradient_checkpointing,
+        fix_mistral_regex=args.fix_mistral_regex,
         trust_remote_code=args.trust_remote_code,
         device=args.device,
         seed=args.seed,
         show_progress=(not args.no_progress),
     )
-    print(json.dumps(summary, indent=2, ensure_ascii=False))
+    if summary.get("is_main_process", True):
+        print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
 def _cmd_score_pairs(args) -> None:
@@ -749,6 +1080,7 @@ def _cmd_score_pairs(args) -> None:
             critic_path=args.critic_path,
             batch_size=args.batch_size,
             device=args.device,
+            allow_constant_scores=args.allow_constant_scores,
         )
     else:
         summary = score_hdpo_pair_file(
@@ -757,6 +1089,7 @@ def _cmd_score_pairs(args) -> None:
             critic_path=args.critic_path,
             batch_size=args.batch_size,
             device=args.device,
+            allow_constant_scores=args.allow_constant_scores,
         )
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
@@ -793,7 +1126,11 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument("--batch-size", type=int, default=16, help="Regression batch size.")
     train_parser.add_argument("--pair-batch-size", type=int, default=8, help="Pair ranking batch size.")
     train_parser.add_argument("--learning-rate", type=float, default=1.0e-3, help="Critic learning rate.")
-    train_parser.add_argument("--encoder-learning-rate", type=float, help="Optional separate learning rate when fine-tuning the encoder.")
+    train_parser.add_argument(
+        "--encoder-learning-rate",
+        type=float,
+        help=f"Optional separate learning rate when fine-tuning the encoder. Defaults to min(--learning-rate, {DEFAULT_ENCODER_LEARNING_RATE}).",
+    )
     train_parser.add_argument("--weight-decay", type=float, default=0.0, help="Optimizer weight decay.")
     train_parser.add_argument("--num-epochs", type=int, default=3, help="Number of critic training epochs.")
     train_parser.add_argument("--max-length", type=int, default=3072, help="Maximum encoder sequence length.")
@@ -804,6 +1141,28 @@ def build_parser() -> argparse.ArgumentParser:
     train_parser.add_argument("--reg-lambda", type=float, default=1.0, help="Regression coefficient.")
     train_parser.add_argument("--rank-lambda", type=float, default=1.0, help="Ranking coefficient.")
     train_parser.add_argument("--finetune-encoder", action="store_true", help="Fine-tune the encoder backbone together with the critic.")
+    train_parser.add_argument(
+        "--max-grad-norm",
+        type=float,
+        default=DEFAULT_MAX_GRAD_NORM,
+        help="Gradient clipping norm. Set to 0 to disable clipping.",
+    )
+    train_parser.add_argument(
+        "--torch-dtype",
+        choices=["auto", "fp16", "float16", "bf16", "bfloat16", "fp32", "float32"],
+        default="auto",
+        help="Optional dtype used to load the encoder backbone.",
+    )
+    train_parser.add_argument(
+        "--gradient-checkpointing",
+        action="store_true",
+        help="Enable encoder gradient checkpointing when fine-tuning the backbone.",
+    )
+    train_parser.add_argument(
+        "--fix-mistral-regex",
+        action="store_true",
+        help="Pass fix_mistral_regex=True when loading the tokenizer.",
+    )
     train_parser.add_argument("--trust-remote-code", action="store_true", help="Pass trust_remote_code=True to AutoModel/AutoTokenizer.")
     train_parser.add_argument("--device", default="auto", help="Torch device for critic training.")
     train_parser.add_argument("--seed", type=int, default=42, help="Random seed.")
@@ -819,6 +1178,11 @@ def build_parser() -> argparse.ArgumentParser:
     score_parser.add_argument("--critic-path", required=True, help="Path to a trained critic bundle directory.")
     score_parser.add_argument("--batch-size", type=int, default=16, help="Critic scoring batch size.")
     score_parser.add_argument("--device", default="auto", help="Torch device for critic scoring.")
+    score_parser.add_argument(
+        "--allow-constant-scores",
+        action="store_true",
+        help="Write output even when score diagnostics detect a collapsed constant critic.",
+    )
     score_parser.set_defaults(func=_cmd_score_pairs)
 
     return parser

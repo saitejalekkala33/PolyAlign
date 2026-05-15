@@ -9,6 +9,10 @@ from polyalign_data.reference_builder import build_bucket_references, build_refe
 from polyalign_data.registry import canonical_dataset_names, create_formatter
 
 
+HDPO_DEFAULT_ENCODER_LEARNING_RATE = 1.0e-5
+HDPO_DEFAULT_MAX_GRAD_NORM = 1.0
+
+
 def _load_json(path: str | None) -> dict:
     if not path:
         return {}
@@ -165,11 +169,16 @@ def _cmd_hdpo_critic_train(args) -> None:
         rank_lambda=args.rank_lambda,
         encoder_learning_rate=args.encoder_learning_rate,
         finetune_encoder=args.finetune_encoder,
+        max_grad_norm=args.max_grad_norm,
+        torch_dtype=args.torch_dtype,
+        gradient_checkpointing=args.gradient_checkpointing,
+        fix_mistral_regex=args.fix_mistral_regex,
         trust_remote_code=args.trust_remote_code,
         device=args.device,
         seed=args.seed,
     )
-    print(json.dumps(summary, indent=2, ensure_ascii=False))
+    if summary.get("is_main_process", True):
+        print(json.dumps(summary, indent=2, ensure_ascii=False))
 
 
 def _cmd_hdpo_critic_score_pairs(args) -> None:
@@ -182,6 +191,7 @@ def _cmd_hdpo_critic_score_pairs(args) -> None:
             critic_path=args.critic_path,
             batch_size=args.batch_size,
             device=args.device,
+            allow_constant_scores=args.allow_constant_scores,
         )
     else:
         summary = score_hdpo_pair_file(
@@ -190,6 +200,7 @@ def _cmd_hdpo_critic_score_pairs(args) -> None:
             critic_path=args.critic_path,
             batch_size=args.batch_size,
             device=args.device,
+            allow_constant_scores=args.allow_constant_scores,
         )
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 
@@ -292,7 +303,11 @@ def build_parser() -> argparse.ArgumentParser:
     hdpo_train_parser.add_argument("--batch-size", type=int, default=16, help="Regression batch size.")
     hdpo_train_parser.add_argument("--pair-batch-size", type=int, default=8, help="Pair ranking batch size.")
     hdpo_train_parser.add_argument("--learning-rate", type=float, default=1.0e-3, help="Critic learning rate.")
-    hdpo_train_parser.add_argument("--encoder-learning-rate", type=float, help="Optional separate learning rate when fine-tuning the encoder.")
+    hdpo_train_parser.add_argument(
+        "--encoder-learning-rate",
+        type=float,
+        help=f"Optional separate learning rate when fine-tuning the encoder. Defaults to min(--learning-rate, {HDPO_DEFAULT_ENCODER_LEARNING_RATE}).",
+    )
     hdpo_train_parser.add_argument("--weight-decay", type=float, default=0.0, help="Optimizer weight decay.")
     hdpo_train_parser.add_argument("--num-epochs", type=int, default=3, help="Number of critic training epochs.")
     hdpo_train_parser.add_argument("--max-length", type=int, default=512, help="Maximum encoder sequence length.")
@@ -303,6 +318,28 @@ def build_parser() -> argparse.ArgumentParser:
     hdpo_train_parser.add_argument("--reg-lambda", type=float, default=1.0, help="Regression coefficient.")
     hdpo_train_parser.add_argument("--rank-lambda", type=float, default=1.0, help="Ranking coefficient.")
     hdpo_train_parser.add_argument("--finetune-encoder", action="store_true", help="Fine-tune the encoder backbone together with the critic.")
+    hdpo_train_parser.add_argument(
+        "--max-grad-norm",
+        type=float,
+        default=HDPO_DEFAULT_MAX_GRAD_NORM,
+        help="Gradient clipping norm. Set to 0 to disable clipping.",
+    )
+    hdpo_train_parser.add_argument(
+        "--torch-dtype",
+        choices=["auto", "fp16", "float16", "bf16", "bfloat16", "fp32", "float32"],
+        default="auto",
+        help="Optional dtype used to load the encoder backbone.",
+    )
+    hdpo_train_parser.add_argument(
+        "--gradient-checkpointing",
+        action="store_true",
+        help="Enable encoder gradient checkpointing when fine-tuning the backbone.",
+    )
+    hdpo_train_parser.add_argument(
+        "--fix-mistral-regex",
+        action="store_true",
+        help="Pass fix_mistral_regex=True when loading the tokenizer.",
+    )
     hdpo_train_parser.add_argument("--trust-remote-code", action="store_true", help="Pass trust_remote_code=True to AutoModel/AutoTokenizer.")
     hdpo_train_parser.add_argument("--device", default="auto", help="Torch device for critic training.")
     hdpo_train_parser.add_argument("--seed", type=int, default=42, help="Random seed.")
@@ -320,6 +357,11 @@ def build_parser() -> argparse.ArgumentParser:
     hdpo_score_parser.add_argument("--critic-path", required=True, help="Path to a trained critic bundle directory.")
     hdpo_score_parser.add_argument("--batch-size", type=int, default=16, help="Critic scoring batch size.")
     hdpo_score_parser.add_argument("--device", default="auto", help="Torch device for critic scoring.")
+    hdpo_score_parser.add_argument(
+        "--allow-constant-scores",
+        action="store_true",
+        help="Write output even when score diagnostics detect a collapsed constant critic.",
+    )
     hdpo_score_parser.set_defaults(func=_cmd_hdpo_critic_score_pairs)
 
     return parser
