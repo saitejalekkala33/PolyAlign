@@ -1,0 +1,6 @@
+{
+  "language": "zh",
+  "detector": "ghostbuster",
+  "status": "skipped",
+  "reason": "Ghostbuster standalone inference requires OpenAI API token logprobs; skipped for offline/local run."
+}
