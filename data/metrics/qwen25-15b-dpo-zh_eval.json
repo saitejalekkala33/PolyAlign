@@ -44,10 +44,10 @@
     "current_history_mismatches": 0
   },
   "artifacts": {
-    "generated_records_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25-15b-dpo-zh_eval_artifacts/generated_current_records.jsonl",
-    "generated_records_status": "created",
+    "generated_records_path": null,
+    "generated_records_status": "not_required",
     "prediction_feature_path": "/home/umair/TW/PolyAlign/data/metrics/qwen25-15b-dpo-zh_eval_artifacts/prediction_features_qwen25_3b.jsonl",
-    "prediction_feature_status": "created",
+    "prediction_feature_status": "reused",
     "human_feature_path": "/home/umair/TW/PolyAlign/data/chinese/features/research_models/test/qwen25_3b/test_answer_features_dedup-qwen25-3b.jsonl",
     "human_feature_status": "reused",
     "shared_feature_count": 177,
