@@ -25,3 +25,9 @@ data/english
 data/metrics/*/
 vendor/LlamaFactory/saves/
 wandb/
+logs/
+data/ai_detection/raw/
+data/ai_detection/work/en/inputs/ 
+data/ai_detection/work/zh/inputs/ 
+data/ai_detection/work/en/scores/ 
+data/ai_detection/work/zh/scores/ 

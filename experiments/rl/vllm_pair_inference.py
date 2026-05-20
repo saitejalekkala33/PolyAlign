@@ -348,6 +348,31 @@ def clean_prediction(text: str) -> str:
     return "\n".join(filtered_lines).strip()
 
 
+def is_token_limit_error(exc: BaseException) -> bool:
+    message = str(exc).lower()
+    token_limit_markers = (
+        "context length",
+        "context window",
+        "max context length",
+        "maximum context",
+        "max_model_len",
+        "max model len",
+        "max model length",
+        "max seq len",
+        "max sequence length",
+        "maximum sequence length",
+        "token limit",
+        "too many tokens",
+        "input length",
+        "exceeds",
+        "longer than the model",
+        "input is too long",
+        "prompt is too long",
+        "sequence length is longer",
+    )
+    return any(marker in message for marker in token_limit_markers)
+
+
 def parse_extra_body(raw_value: str | None) -> dict[str, Any] | None:
     if not raw_value:
         return None
@@ -637,6 +662,7 @@ def run_pair_inference(
                         allowed_max_tokens = args.max_model_len - prompt_tokens - args.prompt_safety_margin
                         request_max_tokens = min(request_max_tokens, max(1, allowed_max_tokens))
                 except Exception as exc:
+                    token_limit_error = is_token_limit_error(exc)
                     row = build_output_row(
                         source_index=source_index,
                         batch_index=batch_index,
@@ -647,9 +673,9 @@ def run_pair_inference(
                         system_mode=args.system_mode,
                         default_system_prompt=args.default_system_prompt,
                         model_name=args.model_name,
-                        raw_prediction="",
-                        prediction="",
-                        finish_reason="prompt_error",
+                        raw_prediction="[TOKEN_LIMIT_EXCEEDED]" if token_limit_error else "",
+                        prediction="[TOKEN_LIMIT_EXCEEDED]" if token_limit_error else "",
+                        finish_reason="token_limit_exceeded" if token_limit_error else "prompt_error",
                         usage={},
                         run_kind=run_kind,
                         requested_max_tokens=args.max_tokens,
@@ -680,21 +706,65 @@ def run_pair_inference(
                 )
                 continue
 
-            response = call_vllm_completion_batch(
-                base_url=args.base_url,
-                api_key=args.api_key,
-                model_name=args.model_name,
-                prompts=prompts,
-                max_tokens=request_max_tokens,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                timeout=args.timeout,
-                repetition_penalty=args.repetition_penalty,
-                frequency_penalty=args.frequency_penalty,
-                presence_penalty=args.presence_penalty,
-                stop=stop_sequences,
-                extra_body=extra_body,
-            )
+            try:
+                response = call_vllm_completion_batch(
+                    base_url=args.base_url,
+                    api_key=args.api_key,
+                    model_name=args.model_name,
+                    prompts=prompts,
+                    max_tokens=request_max_tokens,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    timeout=args.timeout,
+                    repetition_penalty=args.repetition_penalty,
+                    frequency_penalty=args.frequency_penalty,
+                    presence_penalty=args.presence_penalty,
+                    stop=stop_sequences,
+                    extra_body=extra_body,
+                )
+            except Exception as exc:
+                if not is_token_limit_error(exc):
+                    raise
+
+                error_message = f"{type(exc).__name__}: {exc}"
+                for batch_index, source_index, example, prompt, prompt_tokens, prompt_truncated in valid_items:
+                    row = build_output_row(
+                        source_index=source_index,
+                        batch_index=batch_index,
+                        example=example,
+                        prompt=prompt,
+                        prompt_tokens=prompt_tokens,
+                        prompt_truncated=prompt_truncated,
+                        system_mode=args.system_mode,
+                        default_system_prompt=args.default_system_prompt,
+                        model_name=args.model_name,
+                        raw_prediction="[TOKEN_LIMIT_EXCEEDED]",
+                        prediction="[TOKEN_LIMIT_EXCEEDED]",
+                        finish_reason="token_limit_exceeded",
+                        usage={},
+                        run_kind=run_kind,
+                        requested_max_tokens=args.max_tokens,
+                        batch_max_tokens=request_max_tokens,
+                        error_message=error_message,
+                    )
+                    handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+                    completed_count += 1
+
+                handle.flush()
+                os.fsync(handle.fileno())
+                write_progress(
+                    progress_path,
+                    status="running",
+                    run_kind=run_kind,
+                    records_total=len(all_records),
+                    records_scheduled=len(sampled),
+                    records_completed=completed_count,
+                    elapsed_seconds=time.time() - started,
+                    predictions_path=predictions_path,
+                    batch_size=args.batch_size,
+                )
+                continue
+
             choice_map = extract_choice_map(response, len(valid_items))
             batch_usage = response.get("usage", {})
 

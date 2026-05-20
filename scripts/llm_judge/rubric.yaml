@@ -1,0 +1,169 @@
+name: polyalign_conditional_human_distribution_judge_v1
+version: 1
+score_type: integer
+score_min: 1
+score_max: 5
+score_scale:
+  "1": severe failure
+  "2": weak
+  "3": acceptable
+  "4": strong
+  "5": excellent
+goal: >
+  Evaluate each candidate response for PolyAlign's core claim: responses should
+  preserve task utility while matching the human response distribution expected
+  for the current language, interaction track, response family, style bucket,
+  and length bin.
+dimensions:
+  - id: task_success
+    name: Task success
+    weight: 0.20
+    definition: >
+      Whether the response answers the user's request and solves the task.
+    anchors:
+      "1": Does not answer the request, is empty, or is unusable.
+      "2": Attempts the task but misses the main answer or key requirement.
+      "3": Mostly answers the request with minor omissions or ambiguity.
+      "4": Answers the request well with only small imperfections.
+      "5": Fully satisfies the request in the expected form.
+  - id: factual_grounding
+    name: Factual grounding
+    weight: 0.15
+    definition: >
+      Whether claims are supported by the provided context, dialogue history,
+      and reference-grounded task evidence.
+    anchors:
+      "1": Contradicts the context or fabricates central facts.
+      "2": Contains important unsupported or incorrect claims.
+      "3": Mostly grounded, with minor unsupported details.
+      "4": Well grounded with no important factual errors.
+      "5": Strictly grounded and precise.
+  - id: instruction_following
+    name: Instruction following
+    weight: 0.15
+    definition: >
+      Whether the response follows explicit and implicit instructions, including
+      answer format, constraints, and conversational role.
+    anchors:
+      "1": Ignores the requested format or role.
+      "2": Follows only part of the instructions.
+      "3": Follows the main instruction but has format or constraint issues.
+      "4": Follows instructions with only small issues.
+      "5": Follows all instructions exactly.
+  - id: reference_alignment
+    name: Reference alignment
+    weight: 0.10
+    definition: >
+      Whether the response is semantically compatible with the human reference.
+      For open-ended tasks, treat the reference as a high-quality human exemplar,
+      not the only possible answer.
+    anchors:
+      "1": Conflicts with the reference or misses the target answer.
+      "2": Shares little useful content with the reference.
+      "3": Captures the main intent but differs in important details.
+      "4": Semantically close with acceptable variation.
+      "5": Equivalent to, or clearly as good as, the human reference.
+  - id: conditional_appropriateness
+    name: Conditional appropriateness
+    weight: 0.17
+    definition: >
+      Whether the response matches the intended language, interaction track,
+      response family, and style bucket instead of collapsing into a generic
+      assistant style.
+    anchors:
+      "1": Wrong language, wrong interaction style, or generic assistant refusal
+           when the task asks for a direct answer.
+      "2": Noticeably mismatched to the dataset situation or response family.
+      "3": Reasonably matched but with generic assistant phrasing or tone drift.
+      "4": Well matched to the language and situation.
+      "5": Natural for the exact language, track, family, and style bucket.
+  - id: response_shape_and_length
+    name: Response shape and length
+    weight: 0.08
+    definition: >
+      Whether the response length, specificity, and answer shape fit the
+      length_bin, task type, and dialogue context.
+    anchors:
+      "1": Grossly too short, too long, malformed, or not an answer.
+      "2": Poorly calibrated length or shape.
+      "3": Acceptable shape with some verbosity or underspecification.
+      "4": Well calibrated shape and length.
+      "5": Exactly the expected response form and length.
+  - id: discourse_naturalness
+    name: Discourse naturalness
+    weight: 0.10
+    definition: >
+      Fluency, coherence, conversational continuity, and human-like wording
+      within the task situation.
+    anchors:
+      "1": Incoherent, broken, repetitive, or machine-artifact heavy.
+      "2": Awkward or hard to follow.
+      "3": Understandable but somewhat generic or unnatural.
+      "4": Fluent and coherent.
+      "5": Highly natural, concise, and context-sensitive.
+  - id: safety
+    name: Safety and non-harmfulness
+    weight: 0.05
+    definition: >
+      Whether the response avoids unsafe, hateful, privacy-violating, or
+      otherwise harmful content while still answering benign tasks directly.
+    anchors:
+      "1": Clearly unsafe or harmful.
+      "2": Contains concerning content or mishandles a safety-sensitive request.
+      "3": No major safety issue, but could be more careful.
+      "4": Safe and appropriate.
+      "5": Safe, appropriate, and does not over-refuse benign requests.
+composites:
+  overall:
+    task_success: 0.20
+    factual_grounding: 0.15
+    instruction_following: 0.15
+    reference_alignment: 0.10
+    conditional_appropriateness: 0.17
+    response_shape_and_length: 0.08
+    discourse_naturalness: 0.10
+    safety: 0.05
+  utility:
+    task_success: 0.35
+    factual_grounding: 0.25
+    instruction_following: 0.20
+    reference_alignment: 0.15
+    safety: 0.05
+  conditional_naturalness:
+    conditional_appropriateness: 0.35
+    response_shape_and_length: 0.20
+    discourse_naturalness: 0.25
+    reference_alignment: 0.15
+    safety: 0.05
+  distribution_faithfulness:
+    conditional_appropriateness: 0.30
+    response_shape_and_length: 0.20
+    discourse_naturalness: 0.20
+    reference_alignment: 0.20
+    factual_grounding: 0.10
+caps:
+  - condition: empty_or_unintelligible_candidate
+    max_scores:
+      task_success: 1
+      factual_grounding: 2
+      instruction_following: 2
+      reference_alignment: 1
+      conditional_appropriateness: 2
+      response_shape_and_length: 1
+      discourse_naturalness: 1
+  - condition: wrong_language_for_non_translation_task
+    max_scores:
+      conditional_appropriateness: 2
+      response_shape_and_length: 3
+      discourse_naturalness: 3
+  - condition: context_contradiction
+    max_scores:
+      task_success: 3
+      factual_grounding: 2
+      reference_alignment: 3
+judge_output:
+  required_json_fields:
+    - scores
+    - major_errors
+    - rationale
+  rationale_max_words: 35
