@@ -263,18 +263,20 @@ def build_inputs(args: argparse.Namespace) -> None:
         inputs_dir = output_root / lang / "inputs"
         ensure_dir(inputs_dir)
 
-        manifest_sources: list[dict[str, Any]] = [
-            {
-                "source_id": "human",
-                "model_key": "human",
-                "stage": "human",
-                "source_type": "human",
-                "label": 0,
-                "path": str(human_path),
-                "input_path": str(inputs_dir / "human.jsonl"),
-                "row_count": len(human_rows),
-            }
-        ]
+        manifest_sources: list[dict[str, Any]] = []
+        if args.include_human_candidates:
+            manifest_sources.append(
+                {
+                    "source_id": "human",
+                    "model_key": "human",
+                    "stage": "human",
+                    "source_type": "human",
+                    "label": 0,
+                    "path": str(human_path),
+                    "input_path": str(inputs_dir / "human.jsonl"),
+                    "row_count": len(human_rows),
+                }
+            )
 
         missing_source_files: list[dict[str, Any]] = []
         per_source_reports: dict[str, Any] = {}
@@ -310,25 +312,30 @@ def build_inputs(args: argparse.Namespace) -> None:
                 "reference_sha1": sha1_text(reference_output),
             }
 
-        human_output_rows: list[dict[str, Any]] = []
-        for source_index, human_row in enumerate(human_rows):
-            payload = base_payload(source_index, source_row_index=source_index, source_id="human", source_row=human_row)
-            candidate_text = normalize_text(human_row.get("output", payload["reference_output"]))
-            payload.update(
-                {
-                    "source_id": "human",
-                    "model_key": "human",
-                    "stage": "human",
-                    "source_type": "human",
-                    "label": 0,
-                    "candidate_text": candidate_text,
-                    "candidate_sha1": sha1_text(candidate_text),
-                    "source_index_is_valid": True,
-                    "source_index_in_range": source_index < expected_len,
-                }
-            )
-            human_output_rows.append(payload)
-        write_jsonl(inputs_dir / "human.jsonl", human_output_rows)
+        if args.include_human_candidates:
+            human_output_rows: list[dict[str, Any]] = []
+            for source_index, human_row in enumerate(human_rows):
+                payload = base_payload(source_index, source_row_index=source_index, source_id="human", source_row=human_row)
+                candidate_text = normalize_text(human_row.get("output", payload["reference_output"]))
+                payload.update(
+                    {
+                        "source_id": "human",
+                        "model_key": "human",
+                        "stage": "human",
+                        "source_type": "human",
+                        "label": 0,
+                        "candidate_text": candidate_text,
+                        "candidate_sha1": sha1_text(candidate_text),
+                        "source_index_is_valid": True,
+                        "source_index_in_range": source_index < expected_len,
+                    }
+                )
+                human_output_rows.append(payload)
+            write_jsonl(inputs_dir / "human.jsonl", human_output_rows)
+        else:
+            stale_human_input = inputs_dir / "human.jsonl"
+            if stale_human_input.exists():
+                stale_human_input.unlink()
 
         for source_id, model_key, stage, rel_path in config["sources"]:
             path = raw_root / rel_path
@@ -419,15 +426,17 @@ def build_inputs(args: argparse.Namespace) -> None:
                 "input_mismatches": input_mismatches,
             }
 
+        prediction_source_count = sum(1 for source in manifest_sources if source.get("source_type") == "model")
         summary = {
             "language": lang,
             "mode": "full_context_llm_judge_inputs",
             "human_path": str(human_path),
+            "human_candidate_scoring": args.include_human_candidates,
             "current_path": str(current_path),
             "human_rows": len(human_rows),
             "current_rows": len(current_rows),
             "expected_aligned_rows": expected_len,
-            "present_prediction_sources": len(manifest_sources) - 1,
+            "present_prediction_sources": prediction_source_count,
             "missing_prediction_sources": missing_source_files,
             "per_source_reports": per_source_reports,
             "sources": manifest_sources,
@@ -435,7 +444,11 @@ def build_inputs(args: argparse.Namespace) -> None:
         write_json(output_root / lang / "input_summary.json", summary)
         write_json(output_root / lang / "manifest.json", {"language": lang, "sources": manifest_sources})
         combined_summary[lang] = summary
-        print(f"[inputs] {lang}: wrote human plus {len(manifest_sources) - 1} prediction source files", flush=True)
+        print(
+            f"[inputs] {lang}: wrote {prediction_source_count} prediction source files; "
+            f"human references kept as context only",
+            flush=True,
+        )
 
     write_json(output_root / "input_summary.json", combined_summary)
 
@@ -1248,6 +1261,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--lang", choices=["all", "en", "zh"], default="all")
     p.add_argument("--human-en")
     p.add_argument("--human-zh")
+    p.add_argument(
+        "--include-human-candidates",
+        action="store_true",
+        help="Also score human reference responses as candidates. Disabled by default.",
+    )
     p.set_defaults(func=build_inputs)
 
     p = sub.add_parser("judge")

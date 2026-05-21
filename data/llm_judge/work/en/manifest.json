@@ -1,0 +1,135 @@
+{
+  "language": "en",
+  "sources": [
+    {
+      "source_id": "qwen25_1_5b__baselm",
+      "model_key": "qwen25_1_5b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_1_5b/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__baselm.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_1_5b__sft",
+      "model_key": "qwen25_1_5b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_1_5_sft/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__sft.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_1_5b__dpo",
+      "model_key": "qwen25_1_5b",
+      "stage": "dpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25-1-5b-dpo-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__dpo.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_1_5b__dist_sft",
+      "model_key": "qwen25_1_5b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_1_5b_dist_sft_test-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__dist_sft.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "gemma2_2b__baselm",
+      "model_key": "gemma2_2b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma_2_2b/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__baselm.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "gemma2_2b__sft",
+      "model_key": "gemma2_2b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2_2b_sft-test-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__sft.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "gemma2_2b__dpo",
+      "model_key": "gemma2_2b",
+      "stage": "dpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2-2b-dpo-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__dpo.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "gemma2_2b__dist_sft",
+      "model_key": "gemma2_2b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2_2b_dist-sft-test-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__dist_sft.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_3b__baselm",
+      "model_key": "qwen25_3b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_3b/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__baselm.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_3b__sft",
+      "model_key": "qwen25_3b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_3b_sft-test-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__sft.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_3b__dist_sft",
+      "model_key": "qwen25_3b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen_3b_dist-sft-test-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__dist_sft.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "llama32_3b__baselm",
+      "model_key": "llama32_3b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/llama32_3b/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/llama32_3b__baselm.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "llama32_3b__sft",
+      "model_key": "llama32_3b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/llama32_3b_sft-test-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/llama32_3b__sft.jsonl",
+      "row_count": 51480
+    }
+  ]
+}

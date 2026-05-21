@@ -13,12 +13,23 @@ LOG_ROOT="${LOG_ROOT:-$REPO/logs/llm-judge}"
 RUBRIC_YAML="${RUBRIC_YAML:-$REPO/scripts/llm_judge/rubric.yaml}"
 PROMPTS_PY="${PROMPTS_PY:-$REPO/scripts/llm_judge/llm-judge-prompts.py}"
 
-QWEN_JUDGE_ID="${QWEN_JUDGE_ID:-qwen3_30b_a3b_instruct_2507}"
-QWEN_MODEL_ID="${QWEN_MODEL_ID:-Qwen/Qwen3-30B-A3B-Instruct-2507}"
+QWEN_JUDGE_ID="${QWEN_JUDGE_ID:-qwen3_8b}"
+QWEN_MODEL_ID="${QWEN_MODEL_ID:-Qwen/Qwen3-8B}"
 QWEN_GPU_GROUPS="${QWEN_GPU_GROUPS:-0,1,2,3;4,5,6,7}"
 QWEN_PORTS=(${QWEN_PORTS:-8100 8101})
-QWEN_CHAT_TEMPLATE_KWARGS_JSON="${QWEN_CHAT_TEMPLATE_KWARGS_JSON:-{}}"
+QWEN_CHAT_TEMPLATE_KWARGS_JSON="${QWEN_CHAT_TEMPLATE_KWARGS_JSON:-{\"enable_thinking\":false}}"
 QWEN_EXTRA_BODY_JSON="${QWEN_EXTRA_BODY_JSON:-{}}"
+QWEN_GENERATION_CONFIG="${QWEN_GENERATION_CONFIG:-vllm}"
+QWEN_VLLM_EXTRA_ARGS="${QWEN_VLLM_EXTRA_ARGS:-}"
+
+MISTRAL_JUDGE_ID="${MISTRAL_JUDGE_ID:-mistral_small_3_2_24b_instruct_2506}"
+MISTRAL_MODEL_ID="${MISTRAL_MODEL_ID:-mistralai/Mistral-Small-3.2-24B-Instruct-2506}"
+MISTRAL_GPU_GROUPS="${MISTRAL_GPU_GROUPS:-0,1,2,3;4,5,6,7}"
+MISTRAL_PORTS=(${MISTRAL_PORTS:-8100 8101})
+MISTRAL_CHAT_TEMPLATE_KWARGS_JSON="${MISTRAL_CHAT_TEMPLATE_KWARGS_JSON:-{}}"
+MISTRAL_EXTRA_BODY_JSON="${MISTRAL_EXTRA_BODY_JSON:-{}}"
+MISTRAL_GENERATION_CONFIG="${MISTRAL_GENERATION_CONFIG:-vllm}"
+MISTRAL_VLLM_EXTRA_ARGS="${MISTRAL_VLLM_EXTRA_ARGS:---tokenizer_mode mistral --config_format mistral --load_format mistral}"
 
 GLM_JUDGE_ID="${GLM_JUDGE_ID:-glm45_air_fp8}"
 GLM_MODEL_ID="${GLM_MODEL_ID:-zai-org/GLM-4.5-Air-FP8}"
@@ -26,17 +37,20 @@ GLM_GPU_GROUPS="${GLM_GPU_GROUPS:-0,1,2,3;4,5,6,7}"
 GLM_PORTS=(${GLM_PORTS:-8100 8101})
 GLM_CHAT_TEMPLATE_KWARGS_JSON="${GLM_CHAT_TEMPLATE_KWARGS_JSON:-{\"enable_thinking\":false}}"
 GLM_EXTRA_BODY_JSON="${GLM_EXTRA_BODY_JSON:-{}}"
+GLM_GENERATION_CONFIG="${GLM_GENERATION_CONFIG:-vllm}"
+GLM_VLLM_EXTRA_ARGS="${GLM_VLLM_EXTRA_ARGS:-}"
 
-JUDGES=(${JUDGES:-$QWEN_JUDGE_ID $GLM_JUDGE_ID})
+JUDGES=(${JUDGES:-$QWEN_JUDGE_ID $MISTRAL_JUDGE_ID})
 
 DOWNLOAD_DATA="${DOWNLOAD_DATA:-1}"
 DOWNLOAD_JUDGE_MODELS="${DOWNLOAD_JUDGE_MODELS:-1}"
 BUILD_INPUTS="${BUILD_INPUTS:-1}"
+INCLUDE_HUMAN_CANDIDATES="${INCLUDE_HUMAN_CANDIDATES:-0}"
 RUN_JUDGES="${RUN_JUDGES:-1}"
 UPLOAD_TO_HF="${UPLOAD_TO_HF:-1}"
 GIT_PUSH_SUMMARIES="${GIT_PUSH_SUMMARIES:-1}"
 GIT_PUSH_CONTINUE_ON_ERROR="${GIT_PUSH_CONTINUE_ON_ERROR:-1}"
-CLEANUP_JUDGE_MODEL_AFTER_RUN="${CLEANUP_JUDGE_MODEL_AFTER_RUN:-0}"
+CLEANUP_JUDGE_MODEL_AFTER_RUN="${CLEANUP_JUDGE_MODEL_AFTER_RUN:-1}"
 RESUME="${RESUME:-1}"
 
 SAMPLE_SIZE="${SAMPLE_SIZE:-0}"
@@ -55,10 +69,12 @@ GUIDED_JSON="${GUIDED_JSON:-1}"
 
 VLLM_DTYPE="${VLLM_DTYPE:-auto}"
 GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.90}"
-MAX_NUM_SEQS="${MAX_NUM_SEQS:-32}"
+MAX_NUM_SEQS="${MAX_NUM_SEQS:-16}"
 VLLM_TRUST_REMOTE_CODE="${VLLM_TRUST_REMOTE_CODE:-1}"
+VLLM_ENFORCE_EAGER="${VLLM_ENFORCE_EAGER:-0}"
+VLLM_EXTRA_ARGS="${VLLM_EXTRA_ARGS:-}"
 ENABLE_EXPERT_PARALLEL="${ENABLE_EXPERT_PARALLEL:-0}"
-GIT_LD_LIBRARY_PATH="${GIT_LD_LIBRARY_PATH:-/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu}"
+# GIT_LD_LIBRARY_PATH="${GIT_LD_LIBRARY_PATH:-/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu}"
 
 mkdir -p "$RAW_ROOT" "$WORK_DIR" "$MODELS_ROOT" "$LOG_ROOT"
 
@@ -83,6 +99,7 @@ run_python() {
 judge_model_id() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_MODEL_ID" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_MODEL_ID" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_MODEL_ID" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -91,6 +108,7 @@ judge_model_id() {
 judge_gpu_groups() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_GPU_GROUPS" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_GPU_GROUPS" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_GPU_GROUPS" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -99,6 +117,7 @@ judge_gpu_groups() {
 judge_ports() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "${QWEN_PORTS[*]}" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "${MISTRAL_PORTS[*]}" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "${GLM_PORTS[*]}" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -107,6 +126,7 @@ judge_ports() {
 judge_chat_template_kwargs_json() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_CHAT_TEMPLATE_KWARGS_JSON" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_CHAT_TEMPLATE_KWARGS_JSON" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_CHAT_TEMPLATE_KWARGS_JSON" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -115,7 +135,26 @@ judge_chat_template_kwargs_json() {
 judge_extra_body_json() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_EXTRA_BODY_JSON" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_EXTRA_BODY_JSON" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_EXTRA_BODY_JSON" ;;
+    *) echo "Unknown judge id: $1" >&2; return 1 ;;
+  esac
+}
+
+judge_generation_config() {
+  case "$1" in
+    "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_GENERATION_CONFIG" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_GENERATION_CONFIG" ;;
+    "$GLM_JUDGE_ID") printf '%s\n' "$GLM_GENERATION_CONFIG" ;;
+    *) echo "Unknown judge id: $1" >&2; return 1 ;;
+  esac
+}
+
+judge_vllm_extra_args() {
+  case "$1" in
+    "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_VLLM_EXTRA_ARGS" ;;
+    "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_VLLM_EXTRA_ARGS" ;;
+    "$GLM_JUDGE_ID") printf '%s\n' "$GLM_VLLM_EXTRA_ARGS" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
 }
@@ -133,6 +172,10 @@ resolve_model_ref() {
   local judge_id="$1"
   local model_id
   model_id="$(judge_model_id "$judge_id")"
+  if [[ -d "$model_id" ]]; then
+    printf '%s\n' "$model_id"
+    return 0
+  fi
   local local_dir
   local_dir="$(local_model_dir "$judge_id")"
   if [[ -f "$local_dir/config.json" ]]; then
@@ -171,6 +214,10 @@ download_judge_model() {
   local judge_id="$1"
   local model_id
   model_id="$(judge_model_id "$judge_id")"
+  if [[ -d "$model_id" ]]; then
+    echo "Using existing local judge model: $judge_id -> $model_id"
+    return 0
+  fi
   local local_dir
   local_dir="$(local_model_dir "$judge_id")"
   if [[ "$DOWNLOAD_JUDGE_MODELS" != "1" ]]; then
@@ -203,11 +250,16 @@ build_inputs() {
     log_step "Skipping input build because BUILD_INPUTS=$BUILD_INPUTS"
     return 0
   fi
+  local human_candidate_args=()
+  if [[ "$INCLUDE_HUMAN_CANDIDATES" == "1" ]]; then
+    human_candidate_args+=(--include-human-candidates)
+  fi
   log_step "Building LLM-judge input files under $WORK_DIR"
   run_python build-inputs \
     --raw-root "$RAW_ROOT" \
     --output-root "$WORK_DIR" \
     --lang all \
+    "${human_candidate_args[@]}" \
     2>&1 | tee "$LOG_ROOT/build-inputs.log"
 }
 
@@ -260,6 +312,12 @@ start_vllm_server() {
   tp_size="$(tensor_parallel_size "$gpus")"
   local base_url="http://127.0.0.1:$port"
   local server_log="$LOG_ROOT/${judge_id}.${server_label}.vllm.log"
+  local chat_template_kwargs_json
+  chat_template_kwargs_json="$(judge_chat_template_kwargs_json "$judge_id")"
+  local generation_config
+  generation_config="$(judge_generation_config "$judge_id")"
+  local per_judge_vllm_extra_args
+  per_judge_vllm_extra_args="$(judge_vllm_extra_args "$judge_id")"
 
   local serve_args=(
     "$model_ref"
@@ -275,6 +333,12 @@ start_vllm_server() {
   if [[ "$VLLM_TRUST_REMOTE_CODE" == "1" ]]; then
     serve_args+=(--trust-remote-code)
   fi
+  if [[ -n "$chat_template_kwargs_json" && "$chat_template_kwargs_json" != "{}" ]]; then
+    serve_args+=(--default-chat-template-kwargs "$chat_template_kwargs_json")
+  fi
+  if [[ -n "$generation_config" ]]; then
+    serve_args+=(--generation-config "$generation_config")
+  fi
   if [[ "$judge_id" == "$GLM_JUDGE_ID" ]]; then
     serve_args+=(--reasoning-parser glm45)
   fi
@@ -289,6 +353,19 @@ start_vllm_server() {
   fi
   if [[ -n "${CPU_OFFLOAD_GB:-}" ]]; then
     serve_args+=(--cpu-offload-gb "$CPU_OFFLOAD_GB")
+  fi
+  if [[ "$VLLM_ENFORCE_EAGER" == "1" ]]; then
+    serve_args+=(--enforce-eager)
+  fi
+  if [[ -n "$per_judge_vllm_extra_args" ]]; then
+    # shellcheck disable=SC2206
+    local judge_extra_args=($per_judge_vllm_extra_args)
+    serve_args+=("${judge_extra_args[@]}")
+  fi
+  if [[ -n "$VLLM_EXTRA_ARGS" ]]; then
+    # shellcheck disable=SC2206
+    local extra_args=($VLLM_EXTRA_ARGS)
+    serve_args+=("${extra_args[@]}")
   fi
 
   log_step "Starting vLLM judge=$judge_id GPUs=$gpus TP=$tp_size port=$port" >&2
@@ -377,6 +454,9 @@ run_one_judge_shard() {
 
 run_one_judge_model() {
   local judge_id="$1"
+  if [[ "$INCLUDE_HUMAN_CANDIDATES" != "1" ]]; then
+    rm -f "$WORK_DIR/en/scores/$judge_id/human.jsonl" "$WORK_DIR/zh/scores/$judge_id/human.jsonl"
+  fi
   local model_ref
   model_ref="$(resolve_model_ref "$judge_id")"
   local groups_string
@@ -495,7 +575,7 @@ git_commit_outputs() {
   fi
 
   log_step "Git add/commit/push LLM judge code and summaries"
-  LD_LIBRARY_PATH="$GIT_LD_LIBRARY_PATH" git add \
+  git add \
     scripts/llm_judge \
     "$WORK_DIR/input_summary.json" \
     "$WORK_DIR/en/input_summary.json" \
@@ -506,14 +586,14 @@ git_commit_outputs() {
     "$WORK_DIR/zh/metrics" \
     "$WORK_DIR/metrics"
 
-  if LD_LIBRARY_PATH="$GIT_LD_LIBRARY_PATH" git diff --cached --quiet; then
+  if git diff --cached --quiet; then
     echo "No LLM judge code or summary changes to commit."
     return 0
   fi
 
-  LD_LIBRARY_PATH="$GIT_LD_LIBRARY_PATH" git commit -m "Add PolyAlign LLM judge evaluation"
+  git commit -m "Add PolyAlign LLM judge evaluation"
   set +e
-  LD_LIBRARY_PATH="$GIT_LD_LIBRARY_PATH" git push
+  git push
   local push_status=$?
   set -e
   if (( push_status != 0 )); then
@@ -532,8 +612,8 @@ require_cmd hf
 require_cmd curl
 require_cmd tee
 require_cmd vllm
-LD_LIBRARY_PATH="$GIT_LD_LIBRARY_PATH" git --version >/dev/null 2>&1 || {
-  echo "Missing or broken git even with LD_LIBRARY_PATH=$GIT_LD_LIBRARY_PATH" >&2
+git --version >/dev/null 2>&1 || {
+  echo "Missing or broken git" >&2
   exit 1
 }
 

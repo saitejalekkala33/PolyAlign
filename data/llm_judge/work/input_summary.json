@@ -1,0 +1,585 @@
+{
+  "en": {
+    "language": "en",
+    "mode": "full_context_llm_judge_inputs",
+    "human_path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/llamafactory/test.json",
+    "human_candidate_scoring": false,
+    "current_path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/current/test.jsonl",
+    "human_rows": 51480,
+    "current_rows": 51480,
+    "expected_aligned_rows": 51480,
+    "present_prediction_sources": 13,
+    "missing_prediction_sources": [],
+    "per_source_reports": {
+      "qwen25_1_5b__baselm": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_1_5b__sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 93,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_1_5b__dpo": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 445,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_1_5b__dist_sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 2219,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__baselm": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 223,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 318,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__dpo": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 877,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__dist_sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 2264,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__baselm": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 27317,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 662,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__dist_sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 3579,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "llama32_3b__baselm": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 10017,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "llama32_3b__sft": {
+        "rows": 51480,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 110,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      }
+    },
+    "sources": [
+      {
+        "source_id": "qwen25_1_5b__baselm",
+        "model_key": "qwen25_1_5b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_1_5b/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__baselm.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "qwen25_1_5b__sft",
+        "model_key": "qwen25_1_5b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_1_5_sft/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__sft.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "qwen25_1_5b__dpo",
+        "model_key": "qwen25_1_5b",
+        "stage": "dpo",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25-1-5b-dpo-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__dpo.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "qwen25_1_5b__dist_sft",
+        "model_key": "qwen25_1_5b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_1_5b_dist_sft_test-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__dist_sft.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "gemma2_2b__baselm",
+        "model_key": "gemma2_2b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma_2_2b/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__baselm.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "gemma2_2b__sft",
+        "model_key": "gemma2_2b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2_2b_sft-test-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__sft.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "gemma2_2b__dpo",
+        "model_key": "gemma2_2b",
+        "stage": "dpo",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2-2b-dpo-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__dpo.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "gemma2_2b__dist_sft",
+        "model_key": "gemma2_2b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2_2b_dist-sft-test-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__dist_sft.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "qwen25_3b__baselm",
+        "model_key": "qwen25_3b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_3b/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__baselm.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "qwen25_3b__sft",
+        "model_key": "qwen25_3b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25_3b_sft-test-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__sft.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "qwen25_3b__dist_sft",
+        "model_key": "qwen25_3b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen_3b_dist-sft-test-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__dist_sft.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "llama32_3b__baselm",
+        "model_key": "llama32_3b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/llama32_3b/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/llama32_3b__baselm.jsonl",
+        "row_count": 51480
+      },
+      {
+        "source_id": "llama32_3b__sft",
+        "model_key": "llama32_3b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/llama32_3b_sft-test-en/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/llama32_3b__sft.jsonl",
+        "row_count": 51480
+      }
+    ]
+  },
+  "zh": {
+    "language": "zh",
+    "mode": "full_context_llm_judge_inputs",
+    "human_path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/llamafactory/test.json",
+    "human_candidate_scoring": false,
+    "current_path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/current/test.jsonl",
+    "human_rows": 6357,
+    "current_rows": 6357,
+    "expected_aligned_rows": 6357,
+    "present_prediction_sources": 16,
+    "missing_prediction_sources": [],
+    "per_source_reports": {
+      "qwen25_1_5b__baselm": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 904,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_1_5b__sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_1_5b__dpo": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_1_5b__dist_sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__baselm": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 9,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__dpo": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "gemma2_2b__dist_sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__baselm": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 1543,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__dpo": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "qwen25_3b__dist_sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "llama32_3b__baselm": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 55,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "llama32_3b__sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "llama32_3b__dpo": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      },
+      "llama32_3b__dist_sft": {
+        "rows": 6357,
+        "missing_or_bad_source_index_rows": 0,
+        "out_of_range_source_index_rows": 0,
+        "duplicate_source_index_rows": 0,
+        "empty_candidate_rows": 0,
+        "instruction_mismatches": 0,
+        "input_mismatches": 0
+      }
+    },
+    "sources": [
+      {
+        "source_id": "qwen25_1_5b__baselm",
+        "model_key": "qwen25_1_5b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25_1_5b_zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_1_5b__baselm.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_1_5b__sft",
+        "model_key": "qwen25_1_5b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25_1_5_sft-zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_1_5b__sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_1_5b__dpo",
+        "model_key": "qwen25_1_5b",
+        "stage": "dpo",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25-15b-dpo-zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_1_5b__dpo.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_1_5b__dist_sft",
+        "model_key": "qwen25_1_5b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25_1_5b_dist_sft_zh_test/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_1_5b__dist_sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "gemma2_2b__baselm",
+        "model_key": "gemma2_2b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/gemma_2_2b_zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/gemma2_2b__baselm.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "gemma2_2b__sft",
+        "model_key": "gemma2_2b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/gemma2-2b-sft-zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/gemma2_2b__sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "gemma2_2b__dpo",
+        "model_key": "gemma2_2b",
+        "stage": "dpo",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/gemma2-2b-dpo-zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/gemma2_2b__dpo.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "gemma2_2b__dist_sft",
+        "model_key": "gemma2_2b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/gemma2_2b_dist-sft-zh-test/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/gemma2_2b__dist_sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_3b__baselm",
+        "model_key": "qwen25_3b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25_3b_zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_3b__baselm.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_3b__sft",
+        "model_key": "qwen25_3b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25_3b_sft-zh-test/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_3b__sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_3b__dpo",
+        "model_key": "qwen25_3b",
+        "stage": "dpo",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25-3b-dpo-zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_3b__dpo.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "qwen25_3b__dist_sft",
+        "model_key": "qwen25_3b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25_3b_dist-sft-zh-test/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_3b__dist_sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "llama32_3b__baselm",
+        "model_key": "llama32_3b",
+        "stage": "baselm",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/llama32_3b_zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/llama32_3b__baselm.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "llama32_3b__sft",
+        "model_key": "llama32_3b",
+        "stage": "sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/llama3_2-3b_sft-zh-test/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/llama32_3b__sft.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "llama32_3b__dpo",
+        "model_key": "llama32_3b",
+        "stage": "dpo",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/llama32-3b-dpo-zh/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/llama32_3b__dpo.jsonl",
+        "row_count": 6357
+      },
+      {
+        "source_id": "llama32_3b__dist_sft",
+        "model_key": "llama32_3b",
+        "stage": "dist_sft",
+        "source_type": "model",
+        "label": 1,
+        "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/llama32_3b_dist_sft_zh_test/predictions.jsonl",
+        "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/llama32_3b__dist_sft.jsonl",
+        "row_count": 6357
+      }
+    ]
+  }
+}

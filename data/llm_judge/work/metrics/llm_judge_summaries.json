@@ -1,0 +1,2189 @@
+{
+  "en": {
+    "qwen3_30b_a3b_instruct_2507": {
+      "language": "en",
+      "judge_id": "qwen3_30b_a3b_instruct_2507",
+      "rubric": {
+        "name": "polyalign_conditional_human_distribution_judge_v1",
+        "version": 1,
+        "score_min": 1,
+        "score_max": 5,
+        "dimensions": [
+          "task_success",
+          "factual_grounding",
+          "instruction_following",
+          "reference_alignment",
+          "conditional_appropriateness",
+          "response_shape_and_length",
+          "discourse_naturalness",
+          "safety"
+        ],
+        "composites": [
+          "overall",
+          "utility",
+          "conditional_naturalness",
+          "distribution_faithfulness"
+        ]
+      },
+      "source_summaries": {
+        "qwen25_1_5b__baselm": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__baselm",
+          "model_key": "qwen25_1_5b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__baselm.jsonl",
+          "n_rows": 160,
+          "n_valid": 160,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": 4.09375,
+            "factual_grounding": 4.5375,
+            "instruction_following": 3.98125,
+            "reference_alignment": 3.75,
+            "conditional_appropriateness": 4.44375,
+            "response_shape_and_length": 4.125,
+            "discourse_naturalness": 4.625,
+            "safety": 5.0
+          },
+          "composite_means_0_100": {
+            "overall": 81.7375,
+            "utility": 79.3984375,
+            "conditional_naturalness": 83.7265625,
+            "distribution_faithfulness": 82.171875
+          },
+          "prompt_tokens_mean": 1866.21875,
+          "prompt_tokens_max": 10020
+        },
+        "qwen25_1_5b__sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_1_5b__dpo": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__dpo",
+          "model_key": "qwen25_1_5b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__dpo.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_1_5b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__dist_sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__baselm": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__baselm",
+          "model_key": "gemma2_2b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__sft": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__sft",
+          "model_key": "gemma2_2b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__dpo": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__dpo",
+          "model_key": "gemma2_2b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__dpo.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__dist_sft",
+          "model_key": "gemma2_2b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__baselm": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__baselm",
+          "model_key": "qwen25_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__sft",
+          "model_key": "qwen25_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__dist_sft",
+          "model_key": "qwen25_3b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "llama32_3b__baselm": {
+          "status": "missing_scores",
+          "source_id": "llama32_3b__baselm",
+          "model_key": "llama32_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/llama32_3b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "llama32_3b__sft": {
+          "status": "missing_scores",
+          "source_id": "llama32_3b__sft",
+          "model_key": "llama32_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_30b_a3b_instruct_2507/llama32_3b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        }
+      },
+      "trend_by_model": {
+        "qwen25_1_5b": {
+          "available_stages": [
+            "baselm"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 160,
+              "overall_0_100": 81.7375,
+              "utility_0_100": 79.3984375,
+              "conditional_naturalness_0_100": 83.7265625,
+              "distribution_faithfulness_0_100": 82.171875
+            }
+          ]
+        }
+      }
+    },
+    "qwen3_8b": {
+      "language": "en",
+      "judge_id": "qwen3_8b",
+      "rubric": {
+        "name": "polyalign_conditional_human_distribution_judge_v1",
+        "version": 1,
+        "score_min": 1,
+        "score_max": 5,
+        "dimensions": [
+          "task_success",
+          "factual_grounding",
+          "instruction_following",
+          "reference_alignment",
+          "conditional_appropriateness",
+          "response_shape_and_length",
+          "discourse_naturalness",
+          "safety"
+        ],
+        "composites": [
+          "overall",
+          "utility",
+          "conditional_naturalness",
+          "distribution_faithfulness"
+        ]
+      },
+      "source_summaries": {
+        "qwen25_1_5b__baselm": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__baselm",
+          "model_key": "qwen25_1_5b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_1_5b__baselm.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51469,
+          "n_errors": 11,
+          "dimension_means": {
+            "task_success": 3.7324603159183196,
+            "factual_grounding": 3.665779401192951,
+            "instruction_following": 4.049524956770095,
+            "reference_alignment": 3.307272338689308,
+            "conditional_appropriateness": 4.277759428005207,
+            "response_shape_and_length": 3.94295595406944,
+            "discourse_naturalness": 4.206318366395306,
+            "safety": 4.999164545648837
+          },
+          "composite_means_0_100": {
+            "overall": 73.6940148438866,
+            "utility": 69.46900075773766,
+            "conditional_naturalness": 77.08589150750937,
+            "distribution_faithfulness": 73.5303775087917
+          },
+          "prompt_tokens_mean": 1710.3896908818901,
+          "prompt_tokens_max": 10241
+        },
+        "qwen25_1_5b__sft": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_1_5b__sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51456,
+          "n_errors": 24,
+          "dimension_means": {
+            "task_success": 3.8238495024875623,
+            "factual_grounding": 3.654617537313433,
+            "instruction_following": 4.150944496268656,
+            "reference_alignment": 3.4507346082089554,
+            "conditional_appropriateness": 4.404442630597015,
+            "response_shape_and_length": 4.163304570895522,
+            "discourse_naturalness": 4.322022699004975,
+            "safety": 4.996462997512438
+          },
+          "composite_means_0_100": {
+            "overall": 76.11306747512438,
+            "utility": 71.24059876399254,
+            "conditional_naturalness": 80.55387126865672,
+            "distribution_faithfulness": 76.85017296330845
+          },
+          "prompt_tokens_mean": 1545.31982664801,
+          "prompt_tokens_max": 3630
+        },
+        "qwen25_1_5b__dpo": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__dpo",
+          "model_key": "qwen25_1_5b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_1_5b__dpo.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51440,
+          "n_errors": 40,
+          "dimension_means": {
+            "task_success": 3.794945567651633,
+            "factual_grounding": 3.6706648522550545,
+            "instruction_following": 4.156045878693623,
+            "reference_alignment": 3.457251166407465,
+            "conditional_appropriateness": 4.404937791601866,
+            "response_shape_and_length": 4.1669323483670295,
+            "discourse_naturalness": 4.302430015552099,
+            "safety": 4.99793934681182
+          },
+          "composite_means_0_100": {
+            "overall": 76.02637052877138,
+            "utility": 71.13977449455676,
+            "conditional_naturalness": 80.48017107309487,
+            "distribution_faithfulness": 76.8467632192846
+          },
+          "prompt_tokens_mean": 1578.0209564541212,
+          "prompt_tokens_max": 5949
+        },
+        "qwen25_1_5b__dist_sft": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__dist_sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_1_5b__dist_sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51433,
+          "n_errors": 47,
+          "dimension_means": {
+            "task_success": 3.9133630159625143,
+            "factual_grounding": 3.791981801567087,
+            "instruction_following": 4.254603075846247,
+            "reference_alignment": 3.6165108004588493,
+            "conditional_appropriateness": 4.425174498862598,
+            "response_shape_and_length": 4.277001147123442,
+            "discourse_naturalness": 4.356988703750511,
+            "safety": 4.998891762098264
+          },
+          "composite_means_0_100": {
+            "overall": 78.28486574767173,
+            "utility": 74.02535823304105,
+            "conditional_naturalness": 82.14699220344914,
+            "distribution_faithfulness": 78.92126650205121
+          },
+          "prompt_tokens_mean": 1516.6808858126105,
+          "prompt_tokens_max": 3733
+        },
+        "gemma2_2b__baselm": {
+          "status": "ok",
+          "source_id": "gemma2_2b__baselm",
+          "model_key": "gemma2_2b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/gemma2_2b__baselm.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51424,
+          "n_errors": 56,
+          "dimension_means": {
+            "task_success": 3.2952317983820785,
+            "factual_grounding": 2.98946017423771,
+            "instruction_following": 3.7388184505289357,
+            "reference_alignment": 2.7717408214063473,
+            "conditional_appropriateness": 4.118057716241443,
+            "response_shape_and_length": 3.762678904791537,
+            "discourse_naturalness": 4.028255289359054,
+            "safety": 4.996946950840075
+          },
+          "composite_means_0_100": {
+            "overall": 64.98048090385812,
+            "utility": 57.85170834629745,
+            "conditional_naturalness": 71.6632068683883,
+            "distribution_faithfulness": 66.1724583851898
+          },
+          "prompt_tokens_mean": 1516.7338207840696,
+          "prompt_tokens_max": 4117
+        },
+        "gemma2_2b__sft": {
+          "status": "ok",
+          "source_id": "gemma2_2b__sft",
+          "model_key": "gemma2_2b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/gemma2_2b__sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51436,
+          "n_errors": 44,
+          "dimension_means": {
+            "task_success": 3.6924527568240144,
+            "factual_grounding": 3.5072128470332062,
+            "instruction_following": 3.9630025662959794,
+            "reference_alignment": 3.308208258807061,
+            "conditional_appropriateness": 4.260673458278249,
+            "response_shape_and_length": 4.004452134691656,
+            "discourse_naturalness": 4.182868030173419,
+            "safety": 4.997180962749825
+          },
+          "composite_means_0_100": {
+            "overall": 72.56650497705887,
+            "utility": 67.69631192161133,
+            "conditional_naturalness": 77.09833579594059,
+            "distribution_faithfulness": 73.20072517303056
+          },
+          "prompt_tokens_mean": 1536.8916517614123,
+          "prompt_tokens_max": 6951
+        },
+        "gemma2_2b__dpo": {
+          "status": "ok",
+          "source_id": "gemma2_2b__dpo",
+          "model_key": "gemma2_2b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/gemma2_2b__dpo.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51434,
+          "n_errors": 46,
+          "dimension_means": {
+            "task_success": 3.5368044484193337,
+            "factual_grounding": 3.436831667768402,
+            "instruction_following": 3.828440331298363,
+            "reference_alignment": 3.18806625967259,
+            "conditional_appropriateness": 4.105980479838239,
+            "response_shape_and_length": 3.8024069681533614,
+            "discourse_naturalness": 4.005988256795116,
+            "safety": 4.994867208461329
+          },
+          "composite_means_0_100": {
+            "overall": 69.2127435159622,
+            "utility": 64.76827098806237,
+            "conditional_naturalness": 73.17562312866976,
+            "distribution_faithfulness": 69.36924019131314
+          },
+          "prompt_tokens_mean": 1637.176167515651,
+          "prompt_tokens_max": 8310
+        },
+        "gemma2_2b__dist_sft": {
+          "status": "ok",
+          "source_id": "gemma2_2b__dist_sft",
+          "model_key": "gemma2_2b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/gemma2_2b__dist_sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51438,
+          "n_errors": 42,
+          "dimension_means": {
+            "task_success": 3.692717446245966,
+            "factual_grounding": 3.5061238772891636,
+            "instruction_following": 4.02173490415646,
+            "reference_alignment": 3.360045102842257,
+            "conditional_appropriateness": 4.255511489560248,
+            "response_shape_and_length": 4.108830047824566,
+            "discourse_naturalness": 4.190948326140208,
+            "safety": 4.998230879894241
+          },
+          "composite_means_0_100": {
+            "overall": 73.12191376025507,
+            "utility": 68.18118414401805,
+            "conditional_naturalness": 77.82126054667755,
+            "distribution_faithfulness": 73.98076324895992
+          },
+          "prompt_tokens_mean": 1515.4345619969672,
+          "prompt_tokens_max": 3708
+        },
+        "qwen25_3b__baselm": {
+          "status": "ok",
+          "source_id": "qwen25_3b__baselm",
+          "model_key": "qwen25_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_3b__baselm.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51377,
+          "n_errors": 103,
+          "dimension_means": {
+            "task_success": 2.3425852034957275,
+            "factual_grounding": 2.2531872238550323,
+            "instruction_following": 2.629678649979563,
+            "reference_alignment": 2.143429939467077,
+            "conditional_appropriateness": 2.7081573466726354,
+            "response_shape_and_length": 2.4558460011289096,
+            "discourse_naturalness": 2.635206415322031,
+            "safety": 4.997742180353076
+          },
+          "composite_means_0_100": {
+            "overall": 39.63880238238901,
+            "utility": 37.013473928022265,
+            "conditional_naturalness": 41.73068688323569,
+            "distribution_faithfulness": 37.116559939272435
+          },
+          "prompt_tokens_mean": 1492.3207661015629,
+          "prompt_tokens_max": 3467
+        },
+        "qwen25_3b__sft": {
+          "status": "ok",
+          "source_id": "qwen25_3b__sft",
+          "model_key": "qwen25_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_3b__sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51456,
+          "n_errors": 24,
+          "dimension_means": {
+            "task_success": 4.021805037313433,
+            "factual_grounding": 3.894589552238806,
+            "instruction_following": 4.387165733830845,
+            "reference_alignment": 3.704738028606965,
+            "conditional_appropriateness": 4.556941853233831,
+            "response_shape_and_length": 4.338716573383085,
+            "discourse_naturalness": 4.470421330845771,
+            "safety": 4.99931980721393
+          },
+          "composite_means_0_100": {
+            "overall": 80.89709168998756,
+            "utility": 76.60972481343283,
+            "conditional_naturalness": 84.64887476679104,
+            "distribution_faithfulness": 81.48291744402985
+          },
+          "prompt_tokens_mean": 1508.0961209577115,
+          "prompt_tokens_max": 9517
+        },
+        "qwen25_3b__dist_sft": {
+          "status": "ok",
+          "source_id": "qwen25_3b__dist_sft",
+          "model_key": "qwen25_3b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/qwen25_3b__dist_sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51419,
+          "n_errors": 61,
+          "dimension_means": {
+            "task_success": 3.914661895408312,
+            "factual_grounding": 3.789708084560182,
+            "instruction_following": 4.228962056827243,
+            "reference_alignment": 3.62309652074136,
+            "conditional_appropriateness": 4.3724693206791265,
+            "response_shape_and_length": 4.230595694198643,
+            "discourse_naturalness": 4.310254964118322,
+            "safety": 4.999260973570081
+          },
+          "composite_means_0_100": {
+            "overall": 77.76996343763979,
+            "utility": 73.91946556720279,
+            "conditional_naturalness": 81.18686672241779,
+            "distribution_faithfulness": 78.08752601178553
+          },
+          "prompt_tokens_mean": 1512.5792411365449,
+          "prompt_tokens_max": 3738
+        },
+        "llama32_3b__baselm": {
+          "status": "ok",
+          "source_id": "llama32_3b__baselm",
+          "model_key": "llama32_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/llama32_3b__baselm.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51426,
+          "n_errors": 54,
+          "dimension_means": {
+            "task_success": 3.01458406253646,
+            "factual_grounding": 2.9053008205965853,
+            "instruction_following": 3.4157041185392605,
+            "reference_alignment": 2.693248551316455,
+            "conditional_appropriateness": 3.60514136817952,
+            "response_shape_and_length": 3.284311437794112,
+            "discourse_naturalness": 3.5167619492085715,
+            "safety": 4.99786100416132
+          },
+          "composite_means_0_100": {
+            "overall": 57.439515031307124,
+            "utility": 52.96126959125734,
+            "conditional_naturalness": 61.293314665733284,
+            "distribution_faithfulness": 56.773422004433556
+          },
+          "prompt_tokens_mean": 1493.8189242795472,
+          "prompt_tokens_max": 9187
+        },
+        "llama32_3b__sft": {
+          "status": "ok",
+          "source_id": "llama32_3b__sft",
+          "model_key": "llama32_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen3_8b/llama32_3b__sft.jsonl",
+          "n_rows": 51480,
+          "n_valid": 51461,
+          "n_errors": 19,
+          "dimension_means": {
+            "task_success": 3.979110394279163,
+            "factual_grounding": 3.8099531684188026,
+            "instruction_following": 4.427119566273489,
+            "reference_alignment": 3.604205126212083,
+            "conditional_appropriateness": 4.607819513806572,
+            "response_shape_and_length": 4.358349041021356,
+            "discourse_naturalness": 4.525465886788053,
+            "safety": 4.99912555138843
+          },
+          "composite_means_0_100": {
+            "overall": 80.65759021394842,
+            "utility": 75.52969724645848,
+            "conditional_naturalness": 85.15900390587046,
+            "distribution_faithfulness": 81.52362954470375
+          },
+          "prompt_tokens_mean": 1503.2731777462545,
+          "prompt_tokens_max": 9355
+        }
+      },
+      "trend_by_model": {
+        "gemma2_2b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dpo",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 51424,
+              "overall_0_100": 64.98048090385812,
+              "utility_0_100": 57.85170834629745,
+              "conditional_naturalness_0_100": 71.6632068683883,
+              "distribution_faithfulness_0_100": 66.1724583851898
+            },
+            {
+              "stage": "sft",
+              "n_valid": 51436,
+              "overall_0_100": 72.56650497705887,
+              "utility_0_100": 67.69631192161133,
+              "conditional_naturalness_0_100": 77.09833579594059,
+              "distribution_faithfulness_0_100": 73.20072517303056
+            },
+            {
+              "stage": "dpo",
+              "n_valid": 51434,
+              "overall_0_100": 69.2127435159622,
+              "utility_0_100": 64.76827098806237,
+              "conditional_naturalness_0_100": 73.17562312866976,
+              "distribution_faithfulness_0_100": 69.36924019131314
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 51438,
+              "overall_0_100": 73.12191376025507,
+              "utility_0_100": 68.18118414401805,
+              "conditional_naturalness_0_100": 77.82126054667755,
+              "distribution_faithfulness_0_100": 73.98076324895992
+            }
+          ]
+        },
+        "llama32_3b": {
+          "available_stages": [
+            "baselm",
+            "sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 51426,
+              "overall_0_100": 57.439515031307124,
+              "utility_0_100": 52.96126959125734,
+              "conditional_naturalness_0_100": 61.293314665733284,
+              "distribution_faithfulness_0_100": 56.773422004433556
+            },
+            {
+              "stage": "sft",
+              "n_valid": 51461,
+              "overall_0_100": 80.65759021394842,
+              "utility_0_100": 75.52969724645848,
+              "conditional_naturalness_0_100": 85.15900390587046,
+              "distribution_faithfulness_0_100": 81.52362954470375
+            }
+          ]
+        },
+        "qwen25_1_5b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dpo",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 51469,
+              "overall_0_100": 73.6940148438866,
+              "utility_0_100": 69.46900075773766,
+              "conditional_naturalness_0_100": 77.08589150750937,
+              "distribution_faithfulness_0_100": 73.5303775087917
+            },
+            {
+              "stage": "sft",
+              "n_valid": 51456,
+              "overall_0_100": 76.11306747512438,
+              "utility_0_100": 71.24059876399254,
+              "conditional_naturalness_0_100": 80.55387126865672,
+              "distribution_faithfulness_0_100": 76.85017296330845
+            },
+            {
+              "stage": "dpo",
+              "n_valid": 51440,
+              "overall_0_100": 76.02637052877138,
+              "utility_0_100": 71.13977449455676,
+              "conditional_naturalness_0_100": 80.48017107309487,
+              "distribution_faithfulness_0_100": 76.8467632192846
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 51433,
+              "overall_0_100": 78.28486574767173,
+              "utility_0_100": 74.02535823304105,
+              "conditional_naturalness_0_100": 82.14699220344914,
+              "distribution_faithfulness_0_100": 78.92126650205121
+            }
+          ]
+        },
+        "qwen25_3b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 51377,
+              "overall_0_100": 39.63880238238901,
+              "utility_0_100": 37.013473928022265,
+              "conditional_naturalness_0_100": 41.73068688323569,
+              "distribution_faithfulness_0_100": 37.116559939272435
+            },
+            {
+              "stage": "sft",
+              "n_valid": 51456,
+              "overall_0_100": 80.89709168998756,
+              "utility_0_100": 76.60972481343283,
+              "conditional_naturalness_0_100": 84.64887476679104,
+              "distribution_faithfulness_0_100": 81.48291744402985
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 51419,
+              "overall_0_100": 77.76996343763979,
+              "utility_0_100": 73.91946556720279,
+              "conditional_naturalness_0_100": 81.18686672241779,
+              "distribution_faithfulness_0_100": 78.08752601178553
+            }
+          ]
+        }
+      }
+    }
+  },
+  "zh": {
+    "qwen3_30b_a3b_instruct_2507": {
+      "language": "zh",
+      "judge_id": "qwen3_30b_a3b_instruct_2507",
+      "rubric": {
+        "name": "polyalign_conditional_human_distribution_judge_v1",
+        "version": 1,
+        "score_min": 1,
+        "score_max": 5,
+        "dimensions": [
+          "task_success",
+          "factual_grounding",
+          "instruction_following",
+          "reference_alignment",
+          "conditional_appropriateness",
+          "response_shape_and_length",
+          "discourse_naturalness",
+          "safety"
+        ],
+        "composites": [
+          "overall",
+          "utility",
+          "conditional_naturalness",
+          "distribution_faithfulness"
+        ]
+      },
+      "source_summaries": {
+        "qwen25_1_5b__baselm": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__baselm",
+          "model_key": "qwen25_1_5b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_1_5b__sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_1_5b__dpo": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__dpo",
+          "model_key": "qwen25_1_5b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__dpo.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_1_5b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_1_5b__dist_sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_1_5b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__baselm": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__baselm",
+          "model_key": "gemma2_2b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__sft": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__sft",
+          "model_key": "gemma2_2b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__dpo": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__dpo",
+          "model_key": "gemma2_2b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__dpo.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "gemma2_2b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "gemma2_2b__dist_sft",
+          "model_key": "gemma2_2b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/gemma2_2b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__baselm": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__baselm",
+          "model_key": "qwen25_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__sft",
+          "model_key": "qwen25_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__dpo": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__dpo",
+          "model_key": "qwen25_3b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__dpo.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "qwen25_3b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "qwen25_3b__dist_sft",
+          "model_key": "qwen25_3b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/qwen25_3b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "llama32_3b__baselm": {
+          "status": "missing_scores",
+          "source_id": "llama32_3b__baselm",
+          "model_key": "llama32_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/llama32_3b__baselm.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "llama32_3b__sft": {
+          "status": "missing_scores",
+          "source_id": "llama32_3b__sft",
+          "model_key": "llama32_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/llama32_3b__sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "llama32_3b__dpo": {
+          "status": "missing_scores",
+          "source_id": "llama32_3b__dpo",
+          "model_key": "llama32_3b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/llama32_3b__dpo.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        },
+        "llama32_3b__dist_sft": {
+          "status": "missing_scores",
+          "source_id": "llama32_3b__dist_sft",
+          "model_key": "llama32_3b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_30b_a3b_instruct_2507/llama32_3b__dist_sft.jsonl",
+          "n_rows": 0,
+          "n_valid": 0,
+          "n_errors": 0,
+          "dimension_means": {
+            "task_success": null,
+            "factual_grounding": null,
+            "instruction_following": null,
+            "reference_alignment": null,
+            "conditional_appropriateness": null,
+            "response_shape_and_length": null,
+            "discourse_naturalness": null,
+            "safety": null
+          },
+          "composite_means_0_100": {
+            "overall": null,
+            "utility": null,
+            "conditional_naturalness": null,
+            "distribution_faithfulness": null
+          },
+          "prompt_tokens_mean": null,
+          "prompt_tokens_max": null
+        }
+      },
+      "trend_by_model": {}
+    },
+    "qwen3_8b": {
+      "language": "zh",
+      "judge_id": "qwen3_8b",
+      "rubric": {
+        "name": "polyalign_conditional_human_distribution_judge_v1",
+        "version": 1,
+        "score_min": 1,
+        "score_max": 5,
+        "dimensions": [
+          "task_success",
+          "factual_grounding",
+          "instruction_following",
+          "reference_alignment",
+          "conditional_appropriateness",
+          "response_shape_and_length",
+          "discourse_naturalness",
+          "safety"
+        ],
+        "composites": [
+          "overall",
+          "utility",
+          "conditional_naturalness",
+          "distribution_faithfulness"
+        ]
+      },
+      "source_summaries": {
+        "qwen25_1_5b__baselm": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__baselm",
+          "model_key": "qwen25_1_5b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_1_5b__baselm.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6344,
+          "n_errors": 13,
+          "dimension_means": {
+            "task_success": 3.4758827238335437,
+            "factual_grounding": 3.4763556116015133,
+            "instruction_following": 3.798234552332913,
+            "reference_alignment": 3.266078184110971,
+            "conditional_appropriateness": 3.778688524590164,
+            "response_shape_and_length": 3.6743379571248425,
+            "discourse_naturalness": 3.8647540983606556,
+            "safety": 4.991488020176544
+          },
+          "composite_means_0_100": {
+            "overall": 67.13366960907945,
+            "utility": 64.61952238335435,
+            "conditional_naturalness": 69.07708070617906,
+            "distribution_faithfulness": 66.05690416141236
+          },
+          "prompt_tokens_mean": 1661.328972257251,
+          "prompt_tokens_max": 8206
+        },
+        "qwen25_1_5b__sft": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_1_5b__sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6344,
+          "n_errors": 13,
+          "dimension_means": {
+            "task_success": 4.261979823455233,
+            "factual_grounding": 4.1667717528373265,
+            "instruction_following": 4.523329129886507,
+            "reference_alignment": 3.9974779319041613,
+            "conditional_appropriateness": 4.491015132408575,
+            "response_shape_and_length": 4.466424968474149,
+            "discourse_naturalness": 4.588272383354351,
+            "safety": 4.995271122320303
+          },
+          "composite_means_0_100": {
+            "overall": 84.62590636822195,
+            "utility": 82.1859237074401,
+            "conditional_naturalness": 86.53984079445145,
+            "distribution_faithfulness": 84.36041929382094
+          },
+          "prompt_tokens_mean": 1690.1218474148802,
+          "prompt_tokens_max": 8235
+        },
+        "qwen25_1_5b__dpo": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__dpo",
+          "model_key": "qwen25_1_5b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_1_5b__dpo.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6352,
+          "n_errors": 5,
+          "dimension_means": {
+            "task_success": 3.4563916876574305,
+            "factual_grounding": 3.474023929471033,
+            "instruction_following": 3.5530541561712847,
+            "reference_alignment": 3.320528967254408,
+            "conditional_appropriateness": 3.793450881612091,
+            "response_shape_and_length": 3.464892947103275,
+            "discourse_naturalness": 3.6141372795969775,
+            "safety": 4.938916876574307
+          },
+          "composite_means_0_100": {
+            "overall": 65.19576511335012,
+            "utility": 63.34697732997481,
+            "conditional_naturalness": 66.7311476700252,
+            "distribution_faithfulness": 64.13373740554157
+          },
+          "prompt_tokens_mean": 2360.662153652393,
+          "prompt_tokens_max": 11260
+        },
+        "qwen25_1_5b__dist_sft": {
+          "status": "ok",
+          "source_id": "qwen25_1_5b__dist_sft",
+          "model_key": "qwen25_1_5b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_1_5b__dist_sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6355,
+          "n_errors": 2,
+          "dimension_means": {
+            "task_success": 4.292053501180173,
+            "factual_grounding": 4.178914240755311,
+            "instruction_following": 4.515499606608969,
+            "reference_alignment": 4.05381589299764,
+            "conditional_appropriateness": 4.493784421715185,
+            "response_shape_and_length": 4.490322580645161,
+            "discourse_naturalness": 4.591188040912667,
+            "safety": 4.995751376868608
+          },
+          "composite_means_0_100": {
+            "overall": 85.0007474429583,
+            "utility": 82.69767899291897,
+            "conditional_naturalness": 86.91365066876475,
+            "distribution_faithfulness": 84.8273013375295
+          },
+          "prompt_tokens_mean": 1689.5825334382375,
+          "prompt_tokens_max": 8237
+        },
+        "gemma2_2b__baselm": {
+          "status": "ok",
+          "source_id": "gemma2_2b__baselm",
+          "model_key": "gemma2_2b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/gemma2_2b__baselm.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6340,
+          "n_errors": 17,
+          "dimension_means": {
+            "task_success": 3.0285488958990534,
+            "factual_grounding": 3.0141955835962144,
+            "instruction_following": 3.201735015772871,
+            "reference_alignment": 2.646372239747634,
+            "conditional_appropriateness": 3.265930599369085,
+            "response_shape_and_length": 3.238485804416404,
+            "discourse_naturalness": 3.453627760252366,
+            "safety": 4.99006309148265
+          },
+          "composite_means_0_100": {
+            "overall": 55.297239747634066,
+            "utility": 52.50867507886435,
+            "conditional_naturalness": 57.51597003154574,
+            "distribution_faithfulness": 53.722397476340696
+          },
+          "prompt_tokens_mean": 1676.0930599369085,
+          "prompt_tokens_max": 8406
+        },
+        "gemma2_2b__sft": {
+          "status": "ok",
+          "source_id": "gemma2_2b__sft",
+          "model_key": "gemma2_2b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/gemma2_2b__sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6345,
+          "n_errors": 12,
+          "dimension_means": {
+            "task_success": 4.017021276595744,
+            "factual_grounding": 3.8947202521670605,
+            "instruction_following": 4.323561859732073,
+            "reference_alignment": 3.741686367218282,
+            "conditional_appropriateness": 4.313947990543735,
+            "response_shape_and_length": 4.290622537431048,
+            "discourse_naturalness": 4.4301024428684,
+            "safety": 4.992434988179669
+          },
+          "composite_means_0_100": {
+            "overall": 79.48920409771473,
+            "utility": 76.3806146572104,
+            "conditional_naturalness": 82.16016548463357,
+            "distribution_faithfulness": 79.40346729708432
+          },
+          "prompt_tokens_mean": 1681.2773837667455,
+          "prompt_tokens_max": 8255
+        },
+        "gemma2_2b__dpo": {
+          "status": "ok",
+          "source_id": "gemma2_2b__dpo",
+          "model_key": "gemma2_2b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/gemma2_2b__dpo.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6340,
+          "n_errors": 17,
+          "dimension_means": {
+            "task_success": 2.8864353312302837,
+            "factual_grounding": 2.991167192429022,
+            "instruction_following": 2.595268138801262,
+            "reference_alignment": 2.563564668769716,
+            "conditional_appropriateness": 2.936119873817035,
+            "response_shape_and_length": 2.458044164037855,
+            "discourse_naturalness": 2.64006309148265,
+            "safety": 4.978706624605678
+          },
+          "composite_means_0_100": {
+            "overall": 47.008359621451106,
+            "utility": 47.76419558359621,
+            "conditional_naturalness": 45.318414826498426,
+            "distribution_faithfulness": 42.80717665615142
+          },
+          "prompt_tokens_mean": 2839.162776025237,
+          "prompt_tokens_max": 11074
+        },
+        "gemma2_2b__dist_sft": {
+          "status": "ok",
+          "source_id": "gemma2_2b__dist_sft",
+          "model_key": "gemma2_2b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/gemma2_2b__dist_sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6349,
+          "n_errors": 8,
+          "dimension_means": {
+            "task_success": 3.840604819656639,
+            "factual_grounding": 3.678374547172783,
+            "instruction_following": 4.1283666719168375,
+            "reference_alignment": 3.567333438336746,
+            "conditional_appropriateness": 4.208379272326351,
+            "response_shape_and_length": 4.194361316742794,
+            "discourse_naturalness": 4.300834777130257,
+            "safety": 4.991179713340683
+          },
+          "composite_means_0_100": {
+            "overall": 75.66203339108522,
+            "utility": 71.85344148684833,
+            "conditional_naturalness": 79.2918176090723,
+            "distribution_faithfulness": 76.07142857142857
+          },
+          "prompt_tokens_mean": 1673.7094030555993,
+          "prompt_tokens_max": 8198
+        },
+        "qwen25_3b__baselm": {
+          "status": "ok",
+          "source_id": "qwen25_3b__baselm",
+          "model_key": "qwen25_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_3b__baselm.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6348,
+          "n_errors": 9,
+          "dimension_means": {
+            "task_success": 3.2885948330182733,
+            "factual_grounding": 3.2920604914933835,
+            "instruction_following": 3.5606490233144297,
+            "reference_alignment": 3.1280718336483933,
+            "conditional_appropriateness": 3.525992438563327,
+            "response_shape_and_length": 3.427536231884058,
+            "discourse_naturalness": 3.5926275992438566,
+            "safety": 4.9940138626339
+          },
+          "composite_means_0_100": {
+            "overall": 62.02544108380592,
+            "utility": 60.12661468178954,
+            "conditional_naturalness": 63.416824196597354,
+            "distribution_faithfulness": 60.41627284183995
+          },
+          "prompt_tokens_mean": 1651.2528355387524,
+          "prompt_tokens_max": 8196
+        },
+        "qwen25_3b__sft": {
+          "status": "ok",
+          "source_id": "qwen25_3b__sft",
+          "model_key": "qwen25_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_3b__sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6349,
+          "n_errors": 8,
+          "dimension_means": {
+            "task_success": 4.367774452669712,
+            "factual_grounding": 4.305559930697748,
+            "instruction_following": 4.61222239722791,
+            "reference_alignment": 4.138762009765317,
+            "conditional_appropriateness": 4.560560718223342,
+            "response_shape_and_length": 4.5129941723106,
+            "discourse_naturalness": 4.636635690659946,
+            "safety": 4.996849897621673
+          },
+          "composite_means_0_100": {
+            "overall": 86.87348401323042,
+            "utility": 84.95530792250749,
+            "conditional_naturalness": 88.21527012127895,
+            "distribution_faithfulness": 86.41006457709875
+          },
+          "prompt_tokens_mean": 1677.755394550323,
+          "prompt_tokens_max": 8257
+        },
+        "qwen25_3b__dpo": {
+          "status": "ok",
+          "source_id": "qwen25_3b__dpo",
+          "model_key": "qwen25_3b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_3b__dpo.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6352,
+          "n_errors": 5,
+          "dimension_means": {
+            "task_success": 3.9011335012594457,
+            "factual_grounding": 3.9277392947103276,
+            "instruction_following": 3.955447103274559,
+            "reference_alignment": 3.7410264483627205,
+            "conditional_appropriateness": 4.097449622166247,
+            "response_shape_and_length": 3.8685453400503778,
+            "discourse_naturalness": 4.017632241813602,
+            "safety": 4.95308564231738
+          },
+          "composite_means_0_100": {
+            "overall": 74.8068718513854,
+            "utility": 73.68073047858942,
+            "conditional_naturalness": 75.52581863979849,
+            "distribution_faithfulness": 73.68624055415617
+          },
+          "prompt_tokens_mean": 2183.286838790932,
+          "prompt_tokens_max": 8257
+        },
+        "qwen25_3b__dist_sft": {
+          "status": "ok",
+          "source_id": "qwen25_3b__dist_sft",
+          "model_key": "qwen25_3b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/qwen25_3b__dist_sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6355,
+          "n_errors": 2,
+          "dimension_means": {
+            "task_success": 4.379543666404406,
+            "factual_grounding": 4.28198269079465,
+            "instruction_following": 4.5778127458693945,
+            "reference_alignment": 4.161605035405192,
+            "conditional_appropriateness": 4.536585365853658,
+            "response_shape_and_length": 4.54366640440598,
+            "discourse_naturalness": 4.639496459480724,
+            "safety": 4.994335169158143
+          },
+          "composite_means_0_100": {
+            "overall": 86.73544453186467,
+            "utility": 84.82140047206924,
+            "conditional_naturalness": 88.25924468922109,
+            "distribution_faithfulness": 86.45318646734854
+          },
+          "prompt_tokens_mean": 1684.6,
+          "prompt_tokens_max": 8249
+        },
+        "llama32_3b__baselm": {
+          "status": "ok",
+          "source_id": "llama32_3b__baselm",
+          "model_key": "llama32_3b",
+          "stage": "baselm",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/llama32_3b__baselm.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6340,
+          "n_errors": 17,
+          "dimension_means": {
+            "task_success": 3.675236593059937,
+            "factual_grounding": 3.6522082018927446,
+            "instruction_following": 3.9703470031545742,
+            "reference_alignment": 3.4821766561514194,
+            "conditional_appropriateness": 3.9818611987381702,
+            "response_shape_and_length": 3.8613564668769715,
+            "discourse_naturalness": 3.9998422712933754,
+            "safety": 4.977917981072555
+          },
+          "composite_means_0_100": {
+            "overall": 71.53383280757097,
+            "utility": 69.1169164037855,
+            "conditional_naturalness": 73.42764195583597,
+            "distribution_faithfulness": 70.71135646687698
+          },
+          "prompt_tokens_mean": 1654.864353312303,
+          "prompt_tokens_max": 8190
+        },
+        "llama32_3b__sft": {
+          "status": "ok",
+          "source_id": "llama32_3b__sft",
+          "model_key": "llama32_3b",
+          "stage": "sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/llama32_3b__sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6342,
+          "n_errors": 15,
+          "dimension_means": {
+            "task_success": 4.038158309681489,
+            "factual_grounding": 3.8995584988962473,
+            "instruction_following": 4.327499211605172,
+            "reference_alignment": 3.728319142226427,
+            "conditional_appropriateness": 4.317723115736361,
+            "response_shape_and_length": 4.296278776411227,
+            "discourse_naturalness": 4.446704509618417,
+            "safety": 4.997161778618732
+          },
+          "composite_means_0_100": {
+            "overall": 79.66915011037527,
+            "utility": 76.57127089246295,
+            "conditional_naturalness": 82.28102333648691,
+            "distribution_faithfulness": 79.48833175654367
+          },
+          "prompt_tokens_mean": 1699.0460422579629,
+          "prompt_tokens_max": 12223
+        },
+        "llama32_3b__dpo": {
+          "status": "ok",
+          "source_id": "llama32_3b__dpo",
+          "model_key": "llama32_3b",
+          "stage": "dpo",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/llama32_3b__dpo.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6339,
+          "n_errors": 18,
+          "dimension_means": {
+            "task_success": 2.9427354472314247,
+            "factual_grounding": 2.9548824735762738,
+            "instruction_following": 2.809118157438082,
+            "reference_alignment": 2.6729768102224325,
+            "conditional_appropriateness": 3.194667928695378,
+            "response_shape_and_length": 2.8392490929168637,
+            "discourse_naturalness": 2.989272755955198,
+            "safety": 4.963558920965452
+          },
+          "composite_means_0_100": {
+            "overall": 50.944589051900934,
+            "utility": 49.49065309985802,
+            "conditional_naturalness": 52.060656254929796,
+            "distribution_faithfulness": 48.85470894462849
+          },
+          "prompt_tokens_mean": 2255.135668086449,
+          "prompt_tokens_max": 10572
+        },
+        "llama32_3b__dist_sft": {
+          "status": "ok",
+          "source_id": "llama32_3b__dist_sft",
+          "model_key": "llama32_3b",
+          "stage": "dist_sft",
+          "source_type": "model",
+          "label": 1,
+          "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/scores/qwen3_8b/llama32_3b__dist_sft.jsonl",
+          "n_rows": 6357,
+          "n_valid": 6353,
+          "n_errors": 4,
+          "dimension_means": {
+            "task_success": 4.151267117897056,
+            "factual_grounding": 4.0339996851881,
+            "instruction_following": 4.379820557217063,
+            "reference_alignment": 3.924445144026444,
+            "conditional_appropriateness": 4.366755863371635,
+            "response_shape_and_length": 4.373681725169211,
+            "discourse_naturalness": 4.490004722178498,
+            "safety": 4.992129702502755
+          },
+          "composite_means_0_100": {
+            "overall": 81.89052416181332,
+            "utility": 79.39201951833779,
+            "conditional_naturalness": 84.0968833621911,
+            "distribution_faithfulness": 81.77632614512828
+          },
+          "prompt_tokens_mean": 1682.365811427672,
+          "prompt_tokens_max": 8248
+        }
+      },
+      "trend_by_model": {
+        "gemma2_2b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dpo",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 6340,
+              "overall_0_100": 55.297239747634066,
+              "utility_0_100": 52.50867507886435,
+              "conditional_naturalness_0_100": 57.51597003154574,
+              "distribution_faithfulness_0_100": 53.722397476340696
+            },
+            {
+              "stage": "sft",
+              "n_valid": 6345,
+              "overall_0_100": 79.48920409771473,
+              "utility_0_100": 76.3806146572104,
+              "conditional_naturalness_0_100": 82.16016548463357,
+              "distribution_faithfulness_0_100": 79.40346729708432
+            },
+            {
+              "stage": "dpo",
+              "n_valid": 6340,
+              "overall_0_100": 47.008359621451106,
+              "utility_0_100": 47.76419558359621,
+              "conditional_naturalness_0_100": 45.318414826498426,
+              "distribution_faithfulness_0_100": 42.80717665615142
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 6349,
+              "overall_0_100": 75.66203339108522,
+              "utility_0_100": 71.85344148684833,
+              "conditional_naturalness_0_100": 79.2918176090723,
+              "distribution_faithfulness_0_100": 76.07142857142857
+            }
+          ]
+        },
+        "llama32_3b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dpo",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 6340,
+              "overall_0_100": 71.53383280757097,
+              "utility_0_100": 69.1169164037855,
+              "conditional_naturalness_0_100": 73.42764195583597,
+              "distribution_faithfulness_0_100": 70.71135646687698
+            },
+            {
+              "stage": "sft",
+              "n_valid": 6342,
+              "overall_0_100": 79.66915011037527,
+              "utility_0_100": 76.57127089246295,
+              "conditional_naturalness_0_100": 82.28102333648691,
+              "distribution_faithfulness_0_100": 79.48833175654367
+            },
+            {
+              "stage": "dpo",
+              "n_valid": 6339,
+              "overall_0_100": 50.944589051900934,
+              "utility_0_100": 49.49065309985802,
+              "conditional_naturalness_0_100": 52.060656254929796,
+              "distribution_faithfulness_0_100": 48.85470894462849
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 6353,
+              "overall_0_100": 81.89052416181332,
+              "utility_0_100": 79.39201951833779,
+              "conditional_naturalness_0_100": 84.0968833621911,
+              "distribution_faithfulness_0_100": 81.77632614512828
+            }
+          ]
+        },
+        "qwen25_1_5b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dpo",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 6344,
+              "overall_0_100": 67.13366960907945,
+              "utility_0_100": 64.61952238335435,
+              "conditional_naturalness_0_100": 69.07708070617906,
+              "distribution_faithfulness_0_100": 66.05690416141236
+            },
+            {
+              "stage": "sft",
+              "n_valid": 6344,
+              "overall_0_100": 84.62590636822195,
+              "utility_0_100": 82.1859237074401,
+              "conditional_naturalness_0_100": 86.53984079445145,
+              "distribution_faithfulness_0_100": 84.36041929382094
+            },
+            {
+              "stage": "dpo",
+              "n_valid": 6352,
+              "overall_0_100": 65.19576511335012,
+              "utility_0_100": 63.34697732997481,
+              "conditional_naturalness_0_100": 66.7311476700252,
+              "distribution_faithfulness_0_100": 64.13373740554157
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 6355,
+              "overall_0_100": 85.0007474429583,
+              "utility_0_100": 82.69767899291897,
+              "conditional_naturalness_0_100": 86.91365066876475,
+              "distribution_faithfulness_0_100": 84.8273013375295
+            }
+          ]
+        },
+        "qwen25_3b": {
+          "available_stages": [
+            "baselm",
+            "sft",
+            "dpo",
+            "dist_sft"
+          ],
+          "points": [
+            {
+              "stage": "baselm",
+              "n_valid": 6348,
+              "overall_0_100": 62.02544108380592,
+              "utility_0_100": 60.12661468178954,
+              "conditional_naturalness_0_100": 63.416824196597354,
+              "distribution_faithfulness_0_100": 60.41627284183995
+            },
+            {
+              "stage": "sft",
+              "n_valid": 6349,
+              "overall_0_100": 86.87348401323042,
+              "utility_0_100": 84.95530792250749,
+              "conditional_naturalness_0_100": 88.21527012127895,
+              "distribution_faithfulness_0_100": 86.41006457709875
+            },
+            {
+              "stage": "dpo",
+              "n_valid": 6352,
+              "overall_0_100": 74.8068718513854,
+              "utility_0_100": 73.68073047858942,
+              "conditional_naturalness_0_100": 75.52581863979849,
+              "distribution_faithfulness_0_100": 73.68624055415617
+            },
+            {
+              "stage": "dist_sft",
+              "n_valid": 6355,
+              "overall_0_100": 86.73544453186467,
+              "utility_0_100": 84.82140047206924,
+              "conditional_naturalness_0_100": 88.25924468922109,
+              "distribution_faithfulness_0_100": 86.45318646734854
+            }
+          ]
+        }
+      }
+    }
+  }
+}

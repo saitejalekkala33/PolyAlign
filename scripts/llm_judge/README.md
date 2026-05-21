@@ -1,22 +1,30 @@
 # PolyAlign LLM-as-a-Judge Pipeline
 
-This pipeline scores every configured PolyAlign human/model response with large
-local judges served through vLLM:
+This pipeline scores every configured PolyAlign model response with local judges
+served through vLLM. Human responses are loaded as references/context only; they
+are not scored as candidates by default.
 
-- `qwen3_30b_a3b_instruct_2507`: `Qwen/Qwen3-30B-A3B-Instruct-2507`
-- `glm45_air_fp8`: `zai-org/GLM-4.5-Air-FP8`
+- `qwen3_8b`: `Qwen/Qwen3-8B`
+- `mistral_small_3_2_24b_instruct_2506`: `mistralai/Mistral-Small-3.2-24B-Instruct-2506`
 
 Execution is sequential by judge model. First Qwen is downloaded and run to
-completion; only then GLM is downloaded and run. For each judge model, the
+completion; only then Mistral is downloaded and run. For each judge model, the
 default execution uses two parallel vLLM servers over disjoint source-file
-shards:
+shards for an 8x A100 40GB node:
 
 - server 0: GPUs `0,1,2,3`, port `8100`
 - server 1: GPUs `4,5,6,7`, port `8101`
 
 Both servers use the same judge model and write different score files under the
-same judge ID. Both judges run with hidden reasoning disabled in the prompt; GLM
-also uses `{"enable_thinking": false}` during local chat-template rendering.
+same judge ID. Qwen runs with thinking disabled through both local chat-template
+rendering and vLLM server defaults:
+
+```bash
+--default-chat-template-kwargs '{"enable_thinking":false}' --generation-config vllm
+```
+
+`zai-org/GLM-4.5-Air-FP8` remains configurable through `JUDGES`, but it is not
+the default because FP8 GLM is the higher-risk option on A100 40GB hardware.
 
 ## Rubric
 
@@ -55,15 +63,20 @@ Useful overrides:
 ```bash
 MAX_MODEL_LEN=65536          # increase context if all prompts fit in memory
 BATCH_SIZE=4                 # reduce if either vLLM server is memory-bound
+MAX_NUM_SEQS=16              # default for A100 40GB; lower if vLLM OOMs
 SAMPLE_SIZE=100              # smoke test before full scoring
 UPLOAD_TO_HF=0               # local-only run
 GIT_PUSH_SUMMARIES=0         # skip git commit/push
 DOWNLOAD_JUDGE_MODELS=0      # let vLLM resolve model ids directly
-CLEANUP_JUDGE_MODEL_AFTER_RUN=1  # delete each local judge model after scoring
+CLEANUP_JUDGE_MODEL_AFTER_RUN=0  # keep downloaded judges; default deletes after each judge
+INCLUDE_HUMAN_CANDIDATES=1   # optional; normally leave human responses unscored
+QWEN_MODEL_ID=/home/umair/TW/Multilingual-Interviewer/models/qwen3-8b
 QWEN_GPU_GROUPS='0,1,2,3;4,5,6,7'
-GLM_GPU_GROUPS='0,1,2,3;4,5,6,7'
+MISTRAL_GPU_GROUPS='0,1,2,3;4,5,6,7'
 QWEN_PORTS='8100 8101'
-GLM_PORTS='8100 8101'
+MISTRAL_PORTS='8100 8101'
+JUDGES='qwen3_8b'            # run only the Qwen judge
+JUDGES='qwen3_8b glm45_air_fp8'  # optional GLM run if you want to test it
 ```
 
 Outputs are written under `data/llm_judge/work` and uploaded to the dataset repo
