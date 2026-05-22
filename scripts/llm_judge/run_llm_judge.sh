@@ -22,6 +22,15 @@ QWEN_EXTRA_BODY_JSON="${QWEN_EXTRA_BODY_JSON:-{}}"
 QWEN_GENERATION_CONFIG="${QWEN_GENERATION_CONFIG:-vllm}"
 QWEN_VLLM_EXTRA_ARGS="${QWEN_VLLM_EXTRA_ARGS:-}"
 
+QWEN25_7B_JUDGE_ID="${QWEN25_7B_JUDGE_ID:-qwen25_7b_instruct}"
+QWEN25_7B_MODEL_ID="${QWEN25_7B_MODEL_ID:-Qwen/Qwen2.5-7B-Instruct}"
+QWEN25_7B_GPU_GROUPS="${QWEN25_7B_GPU_GROUPS:-0;1;2;3;4;5;6;7}"
+QWEN25_7B_PORTS=(${QWEN25_7B_PORTS:-8100 8101 8102 8103 8104 8105 8106 8107})
+QWEN25_7B_CHAT_TEMPLATE_KWARGS_JSON="${QWEN25_7B_CHAT_TEMPLATE_KWARGS_JSON:-{}}"
+QWEN25_7B_EXTRA_BODY_JSON="${QWEN25_7B_EXTRA_BODY_JSON:-{}}"
+QWEN25_7B_GENERATION_CONFIG="${QWEN25_7B_GENERATION_CONFIG:-vllm}"
+QWEN25_7B_VLLM_EXTRA_ARGS="${QWEN25_7B_VLLM_EXTRA_ARGS:-}"
+
 MISTRAL_JUDGE_ID="${MISTRAL_JUDGE_ID:-mistral_small_3_2_24b_instruct_2506}"
 MISTRAL_MODEL_ID="${MISTRAL_MODEL_ID:-mistralai/Mistral-Small-3.2-24B-Instruct-2506}"
 MISTRAL_GPU_GROUPS="${MISTRAL_GPU_GROUPS:-0,1,2,3;4,5,6,7}"
@@ -29,7 +38,16 @@ MISTRAL_PORTS=(${MISTRAL_PORTS:-8100 8101})
 MISTRAL_CHAT_TEMPLATE_KWARGS_JSON="${MISTRAL_CHAT_TEMPLATE_KWARGS_JSON:-{}}"
 MISTRAL_EXTRA_BODY_JSON="${MISTRAL_EXTRA_BODY_JSON:-{}}"
 MISTRAL_GENERATION_CONFIG="${MISTRAL_GENERATION_CONFIG:-vllm}"
-MISTRAL_VLLM_EXTRA_ARGS="${MISTRAL_VLLM_EXTRA_ARGS:---tokenizer_mode mistral --config_format mistral --load_format mistral}"
+MISTRAL_VLLM_EXTRA_ARGS="${MISTRAL_VLLM_EXTRA_ARGS:---load_format safetensors}"
+
+MINISTRAL_JUDGE_ID="${MINISTRAL_JUDGE_ID:-ministral3_8b_instruct_2512}"
+MINISTRAL_MODEL_ID="${MINISTRAL_MODEL_ID:-mistralai/Ministral-3-8B-Instruct-2512}"
+MINISTRAL_GPU_GROUPS="${MINISTRAL_GPU_GROUPS:-0;1;2;3;4;5;6;7}"
+MINISTRAL_PORTS=(${MINISTRAL_PORTS:-8100 8101 8102 8103 8104 8105 8106 8107})
+MINISTRAL_CHAT_TEMPLATE_KWARGS_JSON="${MINISTRAL_CHAT_TEMPLATE_KWARGS_JSON:-{}}"
+MINISTRAL_EXTRA_BODY_JSON="${MINISTRAL_EXTRA_BODY_JSON:-{}}"
+MINISTRAL_GENERATION_CONFIG="${MINISTRAL_GENERATION_CONFIG:-vllm}"
+MINISTRAL_VLLM_EXTRA_ARGS="${MINISTRAL_VLLM_EXTRA_ARGS:---tokenizer_mode mistral --config_format mistral --load_format mistral}"
 
 GLM_JUDGE_ID="${GLM_JUDGE_ID:-glm45_air_fp8}"
 GLM_MODEL_ID="${GLM_MODEL_ID:-zai-org/GLM-4.5-Air-FP8}"
@@ -99,7 +117,9 @@ run_python() {
 judge_model_id() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_MODEL_ID" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "$QWEN25_7B_MODEL_ID" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_MODEL_ID" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "$MINISTRAL_MODEL_ID" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_MODEL_ID" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -108,7 +128,9 @@ judge_model_id() {
 judge_gpu_groups() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_GPU_GROUPS" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "$QWEN25_7B_GPU_GROUPS" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_GPU_GROUPS" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "$MINISTRAL_GPU_GROUPS" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_GPU_GROUPS" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -117,7 +139,9 @@ judge_gpu_groups() {
 judge_ports() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "${QWEN_PORTS[*]}" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "${QWEN25_7B_PORTS[*]}" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "${MISTRAL_PORTS[*]}" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "${MINISTRAL_PORTS[*]}" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "${GLM_PORTS[*]}" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -126,7 +150,9 @@ judge_ports() {
 judge_chat_template_kwargs_json() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_CHAT_TEMPLATE_KWARGS_JSON" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "$QWEN25_7B_CHAT_TEMPLATE_KWARGS_JSON" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_CHAT_TEMPLATE_KWARGS_JSON" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "$MINISTRAL_CHAT_TEMPLATE_KWARGS_JSON" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_CHAT_TEMPLATE_KWARGS_JSON" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -135,7 +161,9 @@ judge_chat_template_kwargs_json() {
 judge_extra_body_json() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_EXTRA_BODY_JSON" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "$QWEN25_7B_EXTRA_BODY_JSON" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_EXTRA_BODY_JSON" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "$MINISTRAL_EXTRA_BODY_JSON" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_EXTRA_BODY_JSON" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -144,7 +172,9 @@ judge_extra_body_json() {
 judge_generation_config() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_GENERATION_CONFIG" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "$QWEN25_7B_GENERATION_CONFIG" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_GENERATION_CONFIG" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "$MINISTRAL_GENERATION_CONFIG" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_GENERATION_CONFIG" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -153,7 +183,9 @@ judge_generation_config() {
 judge_vllm_extra_args() {
   case "$1" in
     "$QWEN_JUDGE_ID") printf '%s\n' "$QWEN_VLLM_EXTRA_ARGS" ;;
+    "$QWEN25_7B_JUDGE_ID") printf '%s\n' "$QWEN25_7B_VLLM_EXTRA_ARGS" ;;
     "$MISTRAL_JUDGE_ID") printf '%s\n' "$MISTRAL_VLLM_EXTRA_ARGS" ;;
+    "$MINISTRAL_JUDGE_ID") printf '%s\n' "$MINISTRAL_VLLM_EXTRA_ARGS" ;;
     "$GLM_JUDGE_ID") printf '%s\n' "$GLM_VLLM_EXTRA_ARGS" ;;
     *) echo "Unknown judge id: $1" >&2; return 1 ;;
   esac
@@ -528,8 +560,10 @@ run_judges_sequential_by_model() {
 
 combine_summaries() {
   log_step "Combining judge summaries"
-  run_python summarize --work-dir "$WORK_DIR" --lang all --judge-id all --rubric-yaml "$RUBRIC_YAML"
-  run_python combine-summaries --work-dir "$WORK_DIR" --lang all
+  local judge_ids_csv
+  judge_ids_csv="$(IFS=,; echo "${JUDGES[*]}")"
+  run_python summarize --work-dir "$WORK_DIR" --lang all --judge-id "$judge_ids_csv" --rubric-yaml "$RUBRIC_YAML"
+  run_python combine-summaries --work-dir "$WORK_DIR" --lang all --judge-id "$judge_ids_csv"
 }
 
 upload_outputs() {
@@ -549,14 +583,14 @@ upload_outputs() {
           --repo-type dataset \
           --commit-message "Upload $lang $judge_id LLM judge scores"
       fi
+      if [[ -d "$WORK_DIR/$lang/metrics/llm_judge/$judge_id" ]]; then
+        log_step "Uploading $lang $judge_id judge metric summaries to HF"
+        hf upload "$HF_DATASET_REPO" "$WORK_DIR/$lang/metrics/llm_judge/$judge_id" \
+          "$hf_prefix/llm-judge/metrics/$judge_id" \
+          --repo-type dataset \
+          --commit-message "Upload $lang $judge_id LLM judge metrics"
+      fi
     done
-    if [[ -d "$WORK_DIR/$lang/metrics/llm_judge" ]]; then
-      log_step "Uploading $lang LLM judge metric summaries to HF"
-      hf upload "$HF_DATASET_REPO" "$WORK_DIR/$lang/metrics/llm_judge" \
-        "$hf_prefix/llm-judge/metrics" \
-        --repo-type dataset \
-        --commit-message "Upload $lang LLM judge metrics"
-    fi
   done
 
   if [[ -d "$WORK_DIR/metrics" ]]; then

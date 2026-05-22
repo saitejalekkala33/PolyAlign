@@ -1,0 +1,639 @@
+{
+  "language": "en",
+  "judge_id": "qwen25_7b_instruct",
+  "rubric": {
+    "name": "polyalign_conditional_human_distribution_judge_v1",
+    "version": 1,
+    "score_min": 1,
+    "score_max": 5,
+    "dimensions": [
+      "task_success",
+      "factual_grounding",
+      "instruction_following",
+      "reference_alignment",
+      "conditional_appropriateness",
+      "response_shape_and_length",
+      "discourse_naturalness",
+      "safety"
+    ],
+    "composites": [
+      "overall",
+      "utility",
+      "conditional_naturalness",
+      "distribution_faithfulness"
+    ]
+  },
+  "source_summaries": {
+    "qwen25_1_5b__baselm": {
+      "status": "ok",
+      "source_id": "qwen25_1_5b__baselm",
+      "model_key": "qwen25_1_5b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_1_5b__baselm.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51430,
+      "n_errors": 50,
+      "dimension_means": {
+        "task_success": 3.330663037137857,
+        "factual_grounding": 3.6446432043554347,
+        "instruction_following": 3.7923779895002916,
+        "reference_alignment": 3.015827338129496,
+        "conditional_appropriateness": 3.949815282908808,
+        "response_shape_and_length": 3.895216799533346,
+        "discourse_naturalness": 3.8945362628815867,
+        "safety": 4.8352323546568154
+      },
+      "composite_means_0_100": {
+        "overall": 67.43924265992611,
+        "utility": 63.237604510985804,
+        "conditional_naturalness": 70.73121232743534,
+        "distribution_faithfulness": 67.76312463542679
+      },
+      "prompt_tokens_mean": 1706.4580594983472,
+      "prompt_tokens_max": 10237
+    },
+    "qwen25_1_5b__sft": {
+      "status": "ok",
+      "source_id": "qwen25_1_5b__sft",
+      "model_key": "qwen25_1_5b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_1_5b__sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51425,
+      "n_errors": 55,
+      "dimension_means": {
+        "task_success": 3.337617890131259,
+        "factual_grounding": 3.550879922216821,
+        "instruction_following": 3.6862809917355372,
+        "reference_alignment": 3.017929022848809,
+        "conditional_appropriateness": 3.8402527953330092,
+        "response_shape_and_length": 3.8909868740884783,
+        "discourse_naturalness": 3.8683325230918815,
+        "safety": 4.8271657754010695
+      },
+      "composite_means_0_100": {
+        "overall": 66.18010209042295,
+        "utility": 62.179752066115704,
+        "conditional_naturalness": 69.58541565386486,
+        "distribution_faithfulness": 66.56533787068547
+      },
+      "prompt_tokens_mean": 1541.3456295576082,
+      "prompt_tokens_max": 3626
+    },
+    "qwen25_1_5b__dpo": {
+      "status": "ok",
+      "source_id": "qwen25_1_5b__dpo",
+      "model_key": "qwen25_1_5b",
+      "stage": "dpo",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_1_5b__dpo.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51421,
+      "n_errors": 59,
+      "dimension_means": {
+        "task_success": 3.208436242002295,
+        "factual_grounding": 3.5072246747437816,
+        "instruction_following": 3.631745784796095,
+        "reference_alignment": 2.954823904630404,
+        "conditional_appropriateness": 3.7901829991637657,
+        "response_shape_and_length": 3.802220882518815,
+        "discourse_naturalness": 3.766262810913829,
+        "safety": 4.764045817856518
+      },
+      "composite_means_0_100": {
+        "overall": 64.28381400595087,
+        "utility": 60.18834717333385,
+        "conditional_naturalness": 67.74999513817312,
+        "distribution_faithfulness": 64.81097217090294
+      },
+      "prompt_tokens_mean": 1574.0240174247876,
+      "prompt_tokens_max": 5945
+    },
+    "qwen25_1_5b__dist_sft": {
+      "status": "ok",
+      "source_id": "qwen25_1_5b__dist_sft",
+      "model_key": "qwen25_1_5b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_1_5b__dist_sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51431,
+      "n_errors": 49,
+      "dimension_means": {
+        "task_success": 3.359024712721899,
+        "factual_grounding": 3.619198537846824,
+        "instruction_following": 3.7429760261320992,
+        "reference_alignment": 3.117322237561004,
+        "conditional_appropriateness": 3.878497404289242,
+        "response_shape_and_length": 3.9104042309113183,
+        "discourse_naturalness": 3.8731504345628123,
+        "safety": 4.7303766211040035
+      },
+      "composite_means_0_100": {
+        "overall": 67.09685306527192,
+        "utility": 63.329266395753535,
+        "conditional_naturalness": 70.2989928253388,
+        "distribution_faithfulness": 67.64111139196204
+      },
+      "prompt_tokens_mean": 1512.6739709513718,
+      "prompt_tokens_max": 3729
+    },
+    "gemma2_2b__baselm": {
+      "status": "ok",
+      "source_id": "gemma2_2b__baselm",
+      "model_key": "gemma2_2b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/gemma2_2b__baselm.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51388,
+      "n_errors": 92,
+      "dimension_means": {
+        "task_success": 2.811570794738071,
+        "factual_grounding": 3.0551490620378297,
+        "instruction_following": 3.2014283490309023,
+        "reference_alignment": 2.4099595236241926,
+        "conditional_appropriateness": 3.376780571339612,
+        "response_shape_and_length": 3.4308593445940687,
+        "discourse_naturalness": 3.4266365688487586,
+        "safety": 4.7472950883474745
+      },
+      "composite_means_0_100": {
+        "overall": 54.25866447419631,
+        "utility": 49.67453491087414,
+        "conditional_naturalness": 58.08907235152176,
+        "distribution_faithfulness": 54.301004125476766
+      },
+      "prompt_tokens_mean": 1512.7127928699308,
+      "prompt_tokens_max": 4113
+    },
+    "gemma2_2b__sft": {
+      "status": "ok",
+      "source_id": "gemma2_2b__sft",
+      "model_key": "gemma2_2b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/gemma2_2b__sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51414,
+      "n_errors": 66,
+      "dimension_means": {
+        "task_success": 3.2421324930952657,
+        "factual_grounding": 3.4594468432722603,
+        "instruction_following": 3.568697241996343,
+        "reference_alignment": 2.916092892986346,
+        "conditional_appropriateness": 3.7240829346092506,
+        "response_shape_and_length": 3.7793402575174078,
+        "discourse_naturalness": 3.768195433150504,
+        "safety": 4.777823161006729
+      },
+      "composite_means_0_100": {
+        "overall": 63.63523553895826,
+        "utility": 59.74131559497413,
+        "conditional_naturalness": 66.94127572256583,
+        "distribution_faithfulness": 63.89738203602132
+      },
+      "prompt_tokens_mean": 1532.9388687906019,
+      "prompt_tokens_max": 6947
+    },
+    "gemma2_2b__dpo": {
+      "status": "ok",
+      "source_id": "gemma2_2b__dpo",
+      "model_key": "gemma2_2b",
+      "stage": "dpo",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/gemma2_2b__dpo.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51412,
+      "n_errors": 68,
+      "dimension_means": {
+        "task_success": 3.0237687699369795,
+        "factual_grounding": 3.3404847117404497,
+        "instruction_following": 3.384501672761223,
+        "reference_alignment": 2.7734381078347465,
+        "conditional_appropriateness": 3.542772115459426,
+        "response_shape_and_length": 3.5253442776005603,
+        "discourse_naturalness": 3.5299929977437174,
+        "safety": 4.66558391037112
+      },
+      "composite_means_0_100": {
+        "overall": 59.035570489379914,
+        "utility": 55.4908873414767,
+        "conditional_naturalness": 61.92080642651521,
+        "distribution_faithfulness": 59.06587956119194
+      },
+      "prompt_tokens_mean": 1633.2215047070722,
+      "prompt_tokens_max": 8306
+    },
+    "gemma2_2b__dist_sft": {
+      "status": "ok",
+      "source_id": "gemma2_2b__dist_sft",
+      "model_key": "gemma2_2b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/gemma2_2b__dist_sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51392,
+      "n_errors": 88,
+      "dimension_means": {
+        "task_success": 3.1867022104607723,
+        "factual_grounding": 3.4123793586550435,
+        "instruction_following": 3.525003891656289,
+        "reference_alignment": 2.921738792029888,
+        "conditional_appropriateness": 3.675591531755915,
+        "response_shape_and_length": 3.7420026463262763,
+        "discourse_naturalness": 3.6903992839352426,
+        "safety": 4.662398816936488
+      },
+      "composite_means_0_100": {
+        "overall": 62.41231125466999,
+        "utility": 58.62055378268991,
+        "conditional_naturalness": 65.7209536503736,
+        "distribution_faithfulness": 62.86858849626401
+      },
+      "prompt_tokens_mean": 1511.3947696139478,
+      "prompt_tokens_max": 3704
+    },
+    "qwen25_3b__baselm": {
+      "status": "ok",
+      "source_id": "qwen25_3b__baselm",
+      "model_key": "qwen25_3b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_3b__baselm.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51254,
+      "n_errors": 226,
+      "dimension_means": {
+        "task_success": 2.5175596051039917,
+        "factual_grounding": 3.0978460217739103,
+        "instruction_following": 2.911460568931205,
+        "reference_alignment": 2.301147227533461,
+        "conditional_appropriateness": 3.045303781168299,
+        "response_shape_and_length": 2.869141920630585,
+        "discourse_naturalness": 2.9937175635072384,
+        "safety": 3.994185819643345
+      },
+      "composite_means_0_100": {
+        "overall": 47.03341690404651,
+        "utility": 44.56952140320755,
+        "conditional_naturalness": 48.32488683810044,
+        "distribution_faithfulness": 46.40442697155344
+      },
+      "prompt_tokens_mean": 1487.3482850119015,
+      "prompt_tokens_max": 3463
+    },
+    "qwen25_3b__sft": {
+      "status": "ok",
+      "source_id": "qwen25_3b__sft",
+      "model_key": "qwen25_3b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_3b__sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51428,
+      "n_errors": 52,
+      "dimension_means": {
+        "task_success": 3.440460449560551,
+        "factual_grounding": 3.710819009100101,
+        "instruction_following": 3.8610484560939566,
+        "reference_alignment": 3.18252702807809,
+        "conditional_appropriateness": 4.014000155557284,
+        "response_shape_and_length": 4.031578128645874,
+        "discourse_naturalness": 4.00221669129657,
+        "safety": 4.809520105778953
+      },
+      "composite_means_0_100": {
+        "overall": 69.69322159135102,
+        "utility": 65.54826650851676,
+        "conditional_naturalness": 73.24062281247569,
+        "distribution_faithfulness": 70.46365792953254
+      },
+      "prompt_tokens_mean": 1504.1107178968655,
+      "prompt_tokens_max": 9513
+    },
+    "qwen25_3b__dpo": {
+      "status": "ok",
+      "source_id": "qwen25_3b__dpo",
+      "model_key": "qwen25_3b",
+      "stage": "dpo",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_3b__dpo.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51427,
+      "n_errors": 53,
+      "dimension_means": {
+        "task_success": 3.0446069185447335,
+        "factual_grounding": 3.4328854492776166,
+        "instruction_following": 3.3484939817605537,
+        "reference_alignment": 2.7927936686954324,
+        "conditional_appropriateness": 3.5380247729791745,
+        "response_shape_and_length": 3.450911000058335,
+        "discourse_naturalness": 3.471969976860404,
+        "safety": 4.621891224454081
+      },
+      "composite_means_0_100": {
+        "overall": 59.03090788885216,
+        "utility": 56.08865479222976,
+        "conditional_naturalness": 61.16242440741245,
+        "distribution_faithfulness": 58.69577264860871
+      },
+      "prompt_tokens_mean": 1911.9745853345519,
+      "prompt_tokens_max": 6244
+    },
+    "qwen25_3b__dist_sft": {
+      "status": "ok",
+      "source_id": "qwen25_3b__dist_sft",
+      "model_key": "qwen25_3b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/qwen25_3b__dist_sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51433,
+      "n_errors": 47,
+      "dimension_means": {
+        "task_success": 3.380378356308207,
+        "factual_grounding": 3.6435945793556668,
+        "instruction_following": 3.7453774813835476,
+        "reference_alignment": 3.137907569070441,
+        "conditional_appropriateness": 3.883148951062547,
+        "response_shape_and_length": 3.9083662240195984,
+        "discourse_naturalness": 3.8766161802733654,
+        "safety": 4.699434215387009
+      },
+      "composite_means_0_100": {
+        "overall": 67.34125464196138,
+        "utility": 63.719110298835375,
+        "conditional_naturalness": 70.38968172185173,
+        "distribution_faithfulness": 67.8470534481753
+      },
+      "prompt_tokens_mean": 1508.5189469795657,
+      "prompt_tokens_max": 3734
+    },
+    "llama32_3b__baselm": {
+      "status": "ok",
+      "source_id": "llama32_3b__baselm",
+      "model_key": "llama32_3b",
+      "stage": "baselm",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/llama32_3b__baselm.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51382,
+      "n_errors": 98,
+      "dimension_means": {
+        "task_success": 2.758884434237671,
+        "factual_grounding": 3.2626016893075396,
+        "instruction_following": 3.1895410844264527,
+        "reference_alignment": 2.505176910202016,
+        "conditional_appropriateness": 3.3514849558211046,
+        "response_shape_and_length": 3.31738741193414,
+        "discourse_naturalness": 3.335253590751625,
+        "safety": 4.492293020902261
+      },
+      "composite_means_0_100": {
+        "overall": 54.08498598731073,
+        "utility": 50.4889844692694,
+        "conditional_naturalness": 56.76754505468841,
+        "distribution_faithfulness": 54.081730956366044
+      },
+      "prompt_tokens_mean": 1489.7198240629014,
+      "prompt_tokens_max": 9183
+    },
+    "llama32_3b__sft": {
+      "status": "ok",
+      "source_id": "llama32_3b__sft",
+      "model_key": "llama32_3b",
+      "stage": "sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/llama32_3b__sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51429,
+      "n_errors": 51,
+      "dimension_means": {
+        "task_success": 3.384899570281359,
+        "factual_grounding": 3.6647805712730173,
+        "instruction_following": 3.8585817340411053,
+        "reference_alignment": 3.101129712807949,
+        "conditional_appropriateness": 4.031130296136421,
+        "response_shape_and_length": 4.028660872270509,
+        "discourse_naturalness": 4.005424954792043,
+        "safety": 4.86116782360147
+      },
+      "composite_means_0_100": {
+        "overall": 69.16957844795738,
+        "utility": 64.52135468315542,
+        "conditional_naturalness": 73.15529662252814,
+        "distribution_faithfulness": 70.0715063485582
+      },
+      "prompt_tokens_mean": 1499.2380563495303,
+      "prompt_tokens_max": 9351
+    },
+    "llama32_3b__dist_sft": {
+      "status": "ok",
+      "source_id": "llama32_3b__dist_sft",
+      "model_key": "llama32_3b",
+      "stage": "dist_sft",
+      "source_type": "model",
+      "label": 1,
+      "score_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/scores/qwen25_7b_instruct/llama32_3b__dist_sft.jsonl",
+      "n_rows": 51480,
+      "n_valid": 51409,
+      "n_errors": 71,
+      "dimension_means": {
+        "task_success": 3.313583224727188,
+        "factual_grounding": 3.5801707872162463,
+        "instruction_following": 3.7297360384368496,
+        "reference_alignment": 3.057499659592678,
+        "conditional_appropriateness": 3.8746717500826704,
+        "response_shape_and_length": 3.9285339142951625,
+        "discourse_naturalness": 3.870723025151238,
+        "safety": 4.76581921453442
+      },
+      "composite_means_0_100": {
+        "overall": 66.58232021630454,
+        "utility": 62.44149857028925,
+        "conditional_naturalness": 70.16096403353498,
+        "distribution_faithfulness": 67.29424808885604
+      },
+      "prompt_tokens_mean": 1506.129996693186,
+      "prompt_tokens_max": 3786
+    }
+  },
+  "trend_by_model": {
+    "gemma2_2b": {
+      "available_stages": [
+        "baselm",
+        "sft",
+        "dpo",
+        "dist_sft"
+      ],
+      "points": [
+        {
+          "stage": "baselm",
+          "n_valid": 51388,
+          "overall_0_100": 54.25866447419631,
+          "utility_0_100": 49.67453491087414,
+          "conditional_naturalness_0_100": 58.08907235152176,
+          "distribution_faithfulness_0_100": 54.301004125476766
+        },
+        {
+          "stage": "sft",
+          "n_valid": 51414,
+          "overall_0_100": 63.63523553895826,
+          "utility_0_100": 59.74131559497413,
+          "conditional_naturalness_0_100": 66.94127572256583,
+          "distribution_faithfulness_0_100": 63.89738203602132
+        },
+        {
+          "stage": "dpo",
+          "n_valid": 51412,
+          "overall_0_100": 59.035570489379914,
+          "utility_0_100": 55.4908873414767,
+          "conditional_naturalness_0_100": 61.92080642651521,
+          "distribution_faithfulness_0_100": 59.06587956119194
+        },
+        {
+          "stage": "dist_sft",
+          "n_valid": 51392,
+          "overall_0_100": 62.41231125466999,
+          "utility_0_100": 58.62055378268991,
+          "conditional_naturalness_0_100": 65.7209536503736,
+          "distribution_faithfulness_0_100": 62.86858849626401
+        }
+      ]
+    },
+    "llama32_3b": {
+      "available_stages": [
+        "baselm",
+        "sft",
+        "dist_sft"
+      ],
+      "points": [
+        {
+          "stage": "baselm",
+          "n_valid": 51382,
+          "overall_0_100": 54.08498598731073,
+          "utility_0_100": 50.4889844692694,
+          "conditional_naturalness_0_100": 56.76754505468841,
+          "distribution_faithfulness_0_100": 54.081730956366044
+        },
+        {
+          "stage": "sft",
+          "n_valid": 51429,
+          "overall_0_100": 69.16957844795738,
+          "utility_0_100": 64.52135468315542,
+          "conditional_naturalness_0_100": 73.15529662252814,
+          "distribution_faithfulness_0_100": 70.0715063485582
+        },
+        {
+          "stage": "dist_sft",
+          "n_valid": 51409,
+          "overall_0_100": 66.58232021630454,
+          "utility_0_100": 62.44149857028925,
+          "conditional_naturalness_0_100": 70.16096403353498,
+          "distribution_faithfulness_0_100": 67.29424808885604
+        }
+      ]
+    },
+    "qwen25_1_5b": {
+      "available_stages": [
+        "baselm",
+        "sft",
+        "dpo",
+        "dist_sft"
+      ],
+      "points": [
+        {
+          "stage": "baselm",
+          "n_valid": 51430,
+          "overall_0_100": 67.43924265992611,
+          "utility_0_100": 63.237604510985804,
+          "conditional_naturalness_0_100": 70.73121232743534,
+          "distribution_faithfulness_0_100": 67.76312463542679
+        },
+        {
+          "stage": "sft",
+          "n_valid": 51425,
+          "overall_0_100": 66.18010209042295,
+          "utility_0_100": 62.179752066115704,
+          "conditional_naturalness_0_100": 69.58541565386486,
+          "distribution_faithfulness_0_100": 66.56533787068547
+        },
+        {
+          "stage": "dpo",
+          "n_valid": 51421,
+          "overall_0_100": 64.28381400595087,
+          "utility_0_100": 60.18834717333385,
+          "conditional_naturalness_0_100": 67.74999513817312,
+          "distribution_faithfulness_0_100": 64.81097217090294
+        },
+        {
+          "stage": "dist_sft",
+          "n_valid": 51431,
+          "overall_0_100": 67.09685306527192,
+          "utility_0_100": 63.329266395753535,
+          "conditional_naturalness_0_100": 70.2989928253388,
+          "distribution_faithfulness_0_100": 67.64111139196204
+        }
+      ]
+    },
+    "qwen25_3b": {
+      "available_stages": [
+        "baselm",
+        "sft",
+        "dpo",
+        "dist_sft"
+      ],
+      "points": [
+        {
+          "stage": "baselm",
+          "n_valid": 51254,
+          "overall_0_100": 47.03341690404651,
+          "utility_0_100": 44.56952140320755,
+          "conditional_naturalness_0_100": 48.32488683810044,
+          "distribution_faithfulness_0_100": 46.40442697155344
+        },
+        {
+          "stage": "sft",
+          "n_valid": 51428,
+          "overall_0_100": 69.69322159135102,
+          "utility_0_100": 65.54826650851676,
+          "conditional_naturalness_0_100": 73.24062281247569,
+          "distribution_faithfulness_0_100": 70.46365792953254
+        },
+        {
+          "stage": "dpo",
+          "n_valid": 51427,
+          "overall_0_100": 59.03090788885216,
+          "utility_0_100": 56.08865479222976,
+          "conditional_naturalness_0_100": 61.16242440741245,
+          "distribution_faithfulness_0_100": 58.69577264860871
+        },
+        {
+          "stage": "dist_sft",
+          "n_valid": 51433,
+          "overall_0_100": 67.34125464196138,
+          "utility_0_100": 63.719110298835375,
+          "conditional_naturalness_0_100": 70.38968172185173,
+          "distribution_faithfulness_0_100": 67.8470534481753
+        }
+      ]
+    }
+  }
+}

@@ -33,9 +33,11 @@ SOURCE_CONFIGS: dict[str, dict[str, Any]] = {
             ("gemma2_2b__dist_sft", "gemma2_2b", "dist_sft", "english/merged_sft_dedup/runs/gemma2_2b_dist-sft-test-en/predictions.jsonl"),
             ("qwen25_3b__baselm", "qwen25_3b", "baselm", "english/merged_sft_dedup/runs/qwen25_3b/predictions.jsonl"),
             ("qwen25_3b__sft", "qwen25_3b", "sft", "english/merged_sft_dedup/runs/qwen25_3b_sft-test-en/predictions.jsonl"),
+            ("qwen25_3b__dpo", "qwen25_3b", "dpo", "english/merged_sft_dedup/runs/qwen25-3b-dpo-en/predictions.jsonl"),
             ("qwen25_3b__dist_sft", "qwen25_3b", "dist_sft", "english/merged_sft_dedup/runs/qwen_3b_dist-sft-test-en/predictions.jsonl"),
             ("llama32_3b__baselm", "llama32_3b", "baselm", "english/merged_sft_dedup/runs/llama32_3b/predictions.jsonl"),
             ("llama32_3b__sft", "llama32_3b", "sft", "english/merged_sft_dedup/runs/llama32_3b_sft-test-en/predictions.jsonl"),
+            ("llama32_3b__dist_sft", "llama32_3b", "dist_sft", "english/merged_sft_dedup/runs/llama32_3b_dist-sft-test-en/predictions.jsonl"),
         ],
     },
     "zh": {
@@ -541,6 +543,94 @@ def call_vllm_completion_batch(
     except error.URLError as exc:
         raise RuntimeError(f"Could not reach vLLM server at {base_url}: {exc}") from exc
 
+def call_vllm_chat_completion(
+    *,
+    base_url: str,
+    api_key: str | None,
+    model_name: str,
+    messages: list[dict[str, Any]],
+    max_tokens: int,
+    temperature: float,
+    top_p: float,
+    timeout: float,
+    repetition_penalty: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    extra_body: dict[str, Any],
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "model": model_name,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "top_p": top_p,
+        "n": 1,
+        "repetition_penalty": repetition_penalty,
+        "frequency_penalty": frequency_penalty,
+        "presence_penalty": presence_penalty,
+    }
+    payload.update(extra_body)
+
+    req = request.Request(
+        url=base_url.rstrip("/") + "/v1/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            **({"Authorization": f"Bearer {api_key}"} if api_key else {}),
+        },
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"vLLM HTTP {exc.code}: {error_body}") from exc
+    except error.URLError as exc:
+        raise RuntimeError(f"Could not reach vLLM server at {base_url}: {exc}") from exc
+
+
+def is_mistral_native_judge(args: argparse.Namespace) -> bool:
+    judge_id = args.judge_id.lower()
+    return "mistral" in judge_id or "ministral" in judge_id
+
+
+def estimate_chat_prompt_tokens(messages: list[dict[str, Any]]) -> int:
+    """Conservative fallback when the model uses a native tokenizer vLLM owns."""
+    text = "\n".join(normalize_text(message.get("content", "")) for message in messages)
+    if not text:
+        return 0
+    cjk_chars = sum(
+        1
+        for char in text
+        if "\u4e00" <= char <= "\u9fff"
+        or "\u3400" <= char <= "\u4dbf"
+        or "\uf900" <= char <= "\ufaff"
+    )
+    non_cjk_text = "".join(
+        char
+        for char in text
+        if not (
+            "\u4e00" <= char <= "\u9fff"
+            or "\u3400" <= char <= "\u4dbf"
+            or "\uf900" <= char <= "\ufaff"
+        )
+    )
+    byte_estimate = (len(non_cjk_text.encode("utf-8")) + 3) // 4
+    segment_estimate = len(re.findall(r"\w+|[^\w\s]", non_cjk_text, flags=re.UNICODE))
+    chat_overhead = 8 * max(len(messages), 1)
+    return cjk_chars + max(byte_estimate, segment_estimate) + chat_overhead
+
+
+def parse_judge_id_filter(value: str | None) -> list[str] | None:
+    if not value or value == "all":
+        return None
+    judge_ids: list[str] = []
+    for chunk in value.replace(",", " ").split():
+        chunk = chunk.strip()
+        if chunk:
+            judge_ids.append(chunk)
+    return judge_ids or None
 
 def extract_json_payload(text: str) -> dict[str, Any]:
     text = normalize_text(text)
@@ -710,7 +800,8 @@ def build_success_row(
 
 def retry_single_prompt(
     *,
-    prompt: str,
+    prompt: str | None,
+    messages: list[dict[str, Any]] | None,
     row: dict[str, Any],
     rubric: dict[str, Any],
     judge_id: str,
@@ -725,23 +816,46 @@ def retry_single_prompt(
     last_error = error_prefix
     for _attempt in range(args.max_retries):
         try:
-            response = call_vllm_completion_batch(
-                base_url=args.base_url,
-                api_key=args.api_key,
-                model_name=args.judge_model_name,
-                prompts=[prompt],
-                max_tokens=args.max_tokens,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                timeout=args.timeout,
-                repetition_penalty=args.repetition_penalty,
-                frequency_penalty=args.frequency_penalty,
-                presence_penalty=args.presence_penalty,
-                stop=stop_sequences,
-                extra_body=extra_body,
-            )
-            choice = extract_choice_map(response, 1).get(0, {})
-            raw_text = choice.get("text") or ""
+            if is_mistral_native_judge(args):
+                if messages is None:
+                    raise ValueError("Missing chat messages for Mistral retry.")
+                response = call_vllm_chat_completion(
+                    base_url=args.base_url,
+                    api_key=args.api_key,
+                    model_name=args.judge_model_name,
+                    messages=messages,
+                    max_tokens=args.max_tokens,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    timeout=args.timeout,
+                    repetition_penalty=args.repetition_penalty,
+                    frequency_penalty=args.frequency_penalty,
+                    presence_penalty=args.presence_penalty,
+                    extra_body=extra_body,
+                )
+                choice = extract_choice_map(response, 1).get(0, {})
+                raw_text = (choice.get("message") or {}).get("content") or ""
+            else:
+                if prompt is None:
+                    raise ValueError("Missing completion prompt for retry.")
+                response = call_vllm_completion_batch(
+                    base_url=args.base_url,
+                    api_key=args.api_key,
+                    model_name=args.judge_model_name,
+                    prompts=[prompt],
+                    max_tokens=args.max_tokens,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    timeout=args.timeout,
+                    repetition_penalty=args.repetition_penalty,
+                    frequency_penalty=args.frequency_penalty,
+                    presence_penalty=args.presence_penalty,
+                    stop=stop_sequences,
+                    extra_body=extra_body,
+                )
+                choice = extract_choice_map(response, 1).get(0, {})
+                raw_text = choice.get("text") or ""
+
             parsed = extract_json_payload(raw_text)
             scores = validate_scores(parsed, rubric)
             computed = compute_composites(scores, rubric)
@@ -768,7 +882,6 @@ def retry_single_prompt(
         prompt_tokens=prompt_tokens,
         prompt_sha1=prompt_sha1,
     )
-
 
 def score_input_file(
     *,
@@ -798,11 +911,123 @@ def score_input_file(
     errors = 0
     token_max = 0
     token_sum = 0
+    use_chat_endpoint = is_mistral_native_judge(args)
 
     with output_path.open(mode, encoding="utf-8", buffering=1) as handle:
         total_batches = (len(rows) + args.batch_size - 1) // args.batch_size if rows else 0
         for batch_start in tqdm(range(0, len(rows), args.batch_size), total=total_batches, desc=f"judge {input_path.stem}", unit="batch"):
             batch_rows = rows[batch_start : batch_start + args.batch_size]
+
+            if use_chat_endpoint:
+                for row in batch_rows:
+                    try:
+                        messages = prompts_module.build_judge_messages(row, rubric)
+
+                        # We cannot use HF apply_chat_template for Mistral-native tokenizer.
+                        # Use a stable hash of the messages instead.
+                        prompt_text_for_hash = json.dumps(messages, ensure_ascii=False, sort_keys=True)
+                        prompt_sha1 = sha1_text(prompt_text_for_hash)
+
+                        prompt_tokens = estimate_chat_prompt_tokens(messages)
+
+                        token_max = max(token_max, prompt_tokens)
+                        token_sum += prompt_tokens
+
+                        if args.max_model_len > 0 and prompt_tokens + args.max_tokens + args.prompt_safety_margin > args.max_model_len:
+                            message = (
+                                f"Prompt has approximately {prompt_tokens} tokens; max_model_len={args.max_model_len}, "
+                                f"max_tokens={args.max_tokens}, safety_margin={args.prompt_safety_margin}. "
+                                "No truncation was applied."
+                            )
+                            if args.overlength_policy == "fail":
+                                raise ValueError(message)
+                            out_row = build_error_row(
+                                row,
+                                judge_id=args.judge_id,
+                                judge_model_name=args.judge_model_name,
+                                error_message=message,
+                                prompt_tokens=prompt_tokens,
+                                prompt_sha1=prompt_sha1,
+                            )
+                            handle.write(json.dumps(out_row, ensure_ascii=False) + "\n")
+                            written += 1
+                            errors += 1
+                            continue
+
+                        response = call_vllm_chat_completion(
+                            base_url=args.base_url,
+                            api_key=args.api_key,
+                            model_name=args.judge_model_name,
+                            messages=messages,
+                            max_tokens=args.max_tokens,
+                            temperature=args.temperature,
+                            top_p=args.top_p,
+                            timeout=args.timeout,
+                            repetition_penalty=args.repetition_penalty,
+                            frequency_penalty=args.frequency_penalty,
+                            presence_penalty=args.presence_penalty,
+                            extra_body=extra_body,
+                        )
+                        choice = extract_choice_map(response, 1).get(0, {})
+                        raw_text = (choice.get("message") or {}).get("content") or ""
+
+                        try:
+                            parsed = extract_json_payload(raw_text)
+                            scores = validate_scores(parsed, rubric)
+                            computed = compute_composites(scores, rubric)
+                            out_row = build_success_row(
+                                row,
+                                judge_id=args.judge_id,
+                                judge_model_name=args.judge_model_name,
+                                prompt_tokens=prompt_tokens,
+                                prompt_sha1=prompt_sha1,
+                                raw_judge_response=raw_text,
+                                finish_reason=choice.get("finish_reason"),
+                                usage=response.get("usage", {}),
+                                parsed_payload=parsed,
+                                scores=scores,
+                                computed_scores=computed,
+                            )
+                        except Exception as exc:
+                            out_row = retry_single_prompt(
+                                prompt=None,
+                                messages=messages,
+                                row=row,
+                                rubric=rubric,
+                                judge_id=args.judge_id,
+                                judge_model_name=args.judge_model_name,
+                                prompt_tokens=prompt_tokens,
+                                prompt_sha1=prompt_sha1,
+                                args=args,
+                                stop_sequences=stop_sequences,
+                                extra_body=extra_body,
+                                error_prefix=f"{type(exc).__name__}: {exc}",
+                            )
+
+                        if out_row.get("error"):
+                            errors += 1
+                        handle.write(json.dumps(out_row, ensure_ascii=False) + "\n")
+                        written += 1
+
+                    except Exception as exc:
+                        out_row = build_error_row(
+                            row,
+                            judge_id=args.judge_id,
+                            judge_model_name=args.judge_model_name,
+                            error_message=f"{type(exc).__name__}: {exc}",
+                        )
+                        if args.overlength_policy == "fail":
+                            raise
+                        handle.write(json.dumps(out_row, ensure_ascii=False) + "\n")
+                        written += 1
+                        errors += 1
+
+                    handle.flush()
+                    os.fsync(handle.fileno())
+
+                print(f"[judge] {args.judge_id} {input_path.name}: {written}/{len(rows)} new rows", flush=True)
+                continue
+
             valid_items: list[tuple[dict[str, Any], str, int, str]] = []
             prompts: list[str] = []
 
@@ -900,6 +1125,7 @@ def score_input_file(
                 except Exception as exc:
                     out_row = retry_single_prompt(
                         prompt=prompt,
+                        messages=None,
                         row=row,
                         rubric=rubric,
                         judge_id=args.judge_id,
@@ -935,8 +1161,6 @@ def score_input_file(
 
 
 def judge(args: argparse.Namespace) -> None:
-    from transformers import AutoTokenizer
-
     if args.source_num_shards <= 0:
         raise ValueError("--source-num-shards must be > 0")
     if not (0 <= args.source_shard_index < args.source_num_shards):
@@ -945,9 +1169,14 @@ def judge(args: argparse.Namespace) -> None:
     work_dir = Path(args.work_dir)
     rubric = load_rubric(Path(args.rubric_yaml))
     prompts_module = load_prompts_module(Path(args.prompts_py))
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name_or_path, trust_remote_code=args.trust_remote_code)
-    if not getattr(tokenizer, "chat_template", None):
-        raise ValueError("Judge tokenizer must provide a chat_template for prompt rendering.")
+    if is_mistral_native_judge(args):
+        tokenizer = None
+    else:
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name_or_path, trust_remote_code=args.trust_remote_code)
+        if not getattr(tokenizer, "chat_template", None):
+            raise ValueError("Judge tokenizer must provide a chat_template for prompt rendering.")
     chat_template_kwargs = parse_json_object(args.chat_template_kwargs_json)
 
     languages = ["en", "zh"] if args.lang == "all" else [args.lang]
@@ -1123,10 +1352,11 @@ def summarize(args: argparse.Namespace) -> None:
     work_dir = Path(args.work_dir)
     rubric = load_rubric(Path(args.rubric_yaml))
     languages = ["en", "zh"] if args.lang == "all" else [args.lang]
-    if args.judge_id == "all":
+    requested_judge_ids = parse_judge_id_filter(args.judge_id)
+    if requested_judge_ids is None:
         judge_ids = sorted({path.name for lang in languages for path in (work_dir / lang / "scores").glob("*") if path.is_dir()})
     else:
-        judge_ids = [args.judge_id]
+        judge_ids = requested_judge_ids
     combined: dict[str, Any] = {}
     for lang in languages:
         combined[lang] = {}
@@ -1151,6 +1381,7 @@ def _pearson(xs: list[float], ys: list[float]) -> float | None:
 def combine_summaries(args: argparse.Namespace) -> None:
     work_dir = Path(args.work_dir)
     languages = ["en", "zh"] if args.lang == "all" else [args.lang]
+    requested_judge_ids = parse_judge_id_filter(args.judge_id)
     combined: dict[str, Any] = {}
     csv_rows: list[dict[str, Any]] = []
 
@@ -1158,7 +1389,10 @@ def combine_summaries(args: argparse.Namespace) -> None:
         metric_root = work_dir / lang / "metrics" / "llm_judge"
         judge_summaries: dict[str, Any] = {}
         for summary_path in sorted(metric_root.glob("*/summary.json")):
-            judge_summaries[summary_path.parent.name] = json.loads(summary_path.read_text(encoding="utf-8"))
+            judge_id = summary_path.parent.name
+            if requested_judge_ids is not None and judge_id not in requested_judge_ids:
+                continue
+            judge_summaries[judge_id] = json.loads(summary_path.read_text(encoding="utf-8"))
         source_ids = sorted({source_id for summary in judge_summaries.values() for source_id in summary["source_summaries"]})
         lang_payload: dict[str, Any] = {"judge_ids": sorted(judge_summaries), "source_summaries": {}}
 
@@ -1323,6 +1557,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("combine-summaries")
     p.add_argument("--work-dir", required=True)
     p.add_argument("--lang", choices=["all", "en", "zh"], default="all")
+    p.add_argument("--judge-id", default="all")
     p.set_defaults(func=combine_summaries)
 
     return parser

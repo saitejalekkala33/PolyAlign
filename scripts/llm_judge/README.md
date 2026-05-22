@@ -5,7 +5,9 @@ served through vLLM. Human responses are loaded as references/context only; they
 are not scored as candidates by default.
 
 - `qwen3_8b`: `Qwen/Qwen3-8B`
+- `qwen25_7b_instruct`: `Qwen/Qwen2.5-7B-Instruct`
 - `mistral_small_3_2_24b_instruct_2506`: `mistralai/Mistral-Small-3.2-24B-Instruct-2506`
+- `ministral3_8b_instruct_2512`: `mistralai/Ministral-3-8B-Instruct-2512`
 
 Execution is sequential by judge model. First Qwen is downloaded and run to
 completion; only then Mistral is downloaded and run. For each judge model, the
@@ -25,6 +27,12 @@ rendering and vLLM server defaults:
 
 `zai-org/GLM-4.5-Air-FP8` remains configurable through `JUDGES`, but it is not
 the default because FP8 GLM is the higher-risk option on A100 40GB hardware.
+`ministral3_8b_instruct_2512` is configured for one vLLM server per GPU by
+default and uses Mistral-format loading:
+
+```bash
+--tokenizer_mode mistral --config_format mistral --load_format mistral
+```
 
 ## Rubric
 
@@ -72,10 +80,16 @@ CLEANUP_JUDGE_MODEL_AFTER_RUN=0  # keep downloaded judges; default deletes after
 INCLUDE_HUMAN_CANDIDATES=1   # optional; normally leave human responses unscored
 QWEN_MODEL_ID=/home/umair/TW/Multilingual-Interviewer/models/qwen3-8b
 QWEN_GPU_GROUPS='0,1,2,3;4,5,6,7'
+QWEN25_7B_GPU_GROUPS='0;1;2;3;4;5;6;7'
 MISTRAL_GPU_GROUPS='0,1,2,3;4,5,6,7'
+MINISTRAL_GPU_GROUPS='0;1;2;3;4;5;6;7'
 QWEN_PORTS='8100 8101'
+QWEN25_7B_PORTS='8100 8101 8102 8103 8104 8105 8106 8107'
 MISTRAL_PORTS='8100 8101'
+MINISTRAL_PORTS='8100 8101 8102 8103 8104 8105 8106 8107'
 JUDGES='qwen3_8b'            # run only the Qwen judge
+JUDGES='qwen25_7b_instruct'  # run only Qwen2.5-7B-Instruct
+JUDGES='ministral3_8b_instruct_2512'  # run only Ministral 3 8B
 JUDGES='qwen3_8b glm45_air_fp8'  # optional GLM run if you want to test it
 ```
 
