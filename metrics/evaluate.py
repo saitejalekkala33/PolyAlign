@@ -34,6 +34,31 @@ def log_step(message: str) -> None:
     print(f"[metrics] {message}", flush=True)
 
 
+def _merge_generated_features_with_metadata(
+    *,
+    aligned_frame: pd.DataFrame,
+    generated_feature_frame: pd.DataFrame,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    metadata_frame = aligned_frame[["id", "bucket_id", "track", "family", "style_bucket", "length_bin"]]
+    merged = metadata_frame.merge(
+        generated_feature_frame,
+        on="id",
+        how="inner",
+        validate="one_to_one",
+    )
+    missing_count = len(aligned_frame) - len(merged)
+    coverage = {
+        "prediction_rows": int(len(aligned_frame)),
+        "prediction_feature_rows": int(len(generated_feature_frame)),
+        "aligned_prediction_feature_rows": int(len(merged)),
+        "missing_prediction_feature_rows": int(max(0, missing_count)),
+        "prediction_feature_coverage": round(float(len(merged) / len(aligned_frame)), 8)
+        if len(aligned_frame)
+        else 0.0,
+    }
+    return merged, coverage
+
+
 def build_aligned_frame(
     *,
     test_lf_rows: list[dict[str, Any]],
@@ -175,15 +200,20 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
 
     log_step("Loading generated and human feature tables")
     generated_feature_frame = load_feature_frame(prediction_feature_info.path)
-    generated_feature_frame = aligned_frame[["id", "bucket_id", "track", "family", "style_bucket", "length_bin"]].merge(
-        generated_feature_frame,
-        on="id",
-        how="inner",
-        validate="one_to_one",
+    generated_feature_frame, feature_coverage = _merge_generated_features_with_metadata(
+        aligned_frame=aligned_frame,
+        generated_feature_frame=generated_feature_frame,
     )
-    if len(generated_feature_frame) != len(aligned_frame):
+    if feature_coverage["missing_prediction_feature_rows"] > 0:
+        log_step(
+            "Prediction feature file is partial; feature-based metrics will use "
+            f"{feature_coverage['aligned_prediction_feature_rows']}/"
+            f"{feature_coverage['prediction_rows']} rows."
+        )
+    if generated_feature_frame.empty:
         raise ValueError(
-            f"Prediction feature rows ({len(generated_feature_frame)}) do not align one-to-one with predictions ({len(aligned_frame)})."
+            "No prediction feature rows overlap with the aligned predictions. "
+            "Recompute prediction features with --overwrite-artifacts."
         )
 
     human_feature_frame = load_feature_frame(human_feature_info.path)
@@ -295,6 +325,7 @@ def evaluate(paths: EvaluationPaths, args: argparse.Namespace) -> dict[str, Any]
             "prediction_feature_status": prediction_feature_info.status,
             "human_feature_path": str(human_feature_info.path),
             "human_feature_status": human_feature_info.status,
+            **feature_coverage,
             "shared_feature_count": len(feature_names),
             "shared_feature_names": feature_names,
         },

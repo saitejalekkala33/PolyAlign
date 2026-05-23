@@ -291,8 +291,9 @@ def build_reference_feature_frame_from_human_test(
     human_payload = human_feature_frame.drop(columns=["dataset", "split", "field_name"], errors="ignore")
     merged = metadata_frame.merge(human_payload, on="id", how="inner", validate="one_to_one")
     if len(merged) != len(current_test_rows):
-        raise ValueError(
-            f"Human feature rows ({len(merged)}) do not align one-to-one with current test rows ({len(current_test_rows)})."
+        log_step(
+            "Human feature file is partial; BNG human-test reference distribution will use "
+            f"{len(merged)}/{len(current_test_rows)} rows."
         )
     return merged
 
