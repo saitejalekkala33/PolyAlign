@@ -2,6 +2,7 @@
   "language": "en",
   "detector": "binoculars",
   "score_dir": "/home/umair/TW/PolyAlign/data/ai_detection/work/en/scores/binoculars",
+  "merge_existing": true,
   "source_summaries": {
     "human": {
       "status": "ok",
@@ -9,11 +10,11 @@
       "model_key": "human",
       "stage": "human",
       "label": 0,
-      "n_scored": 51272,
-      "n_errors_or_unscored": 208,
-      "predicted_ai_count": 11438,
-      "predicted_human_count": 39834,
-      "predicted_ai_rate": 0.22308472460602277,
+      "n_scored": 49060,
+      "n_errors_or_unscored": 2420,
+      "predicted_ai_count": 11444,
+      "predicted_human_count": 37616,
+      "predicted_ai_rate": 0.233265389319201,
       "score_ai_mean": NaN
     },
     "qwen25_1_5b__baselm": {
@@ -183,6 +184,32 @@
       "predicted_ai_count": 25401,
       "predicted_human_count": 26079,
       "predicted_ai_rate": 0.4934149184149184,
+      "score_ai_mean": NaN
+    },
+    "qwen25_3b__dpo": {
+      "status": "ok",
+      "source_id": "qwen25_3b__dpo",
+      "model_key": "qwen25_3b",
+      "stage": "dpo",
+      "label": 1,
+      "n_scored": 51480,
+      "n_errors_or_unscored": 0,
+      "predicted_ai_count": 30878,
+      "predicted_human_count": 20602,
+      "predicted_ai_rate": 0.5998057498057499,
+      "score_ai_mean": NaN
+    },
+    "llama32_3b__dist_sft": {
+      "status": "ok",
+      "source_id": "llama32_3b__dist_sft",
+      "model_key": "llama32_3b",
+      "stage": "dist_sft",
+      "label": 1,
+      "n_scored": 51476,
+      "n_errors_or_unscored": 4,
+      "predicted_ai_count": 23020,
+      "predicted_human_count": 28456,
+      "predicted_ai_rate": 0.4471986945372601,
       "score_ai_mean": NaN
     }
   },
@@ -563,6 +590,64 @@
       },
       "ai_detected_rate_at_detector_threshold": 0.4941098455297238,
       "human_false_positive_rate_at_detector_threshold": 0.22308472460602277
+    },
+    "qwen25_3b__dpo": {
+      "auroc": 0.9982272674091925,
+      "tpr_at_fpr_0_01": 0.0,
+      "tpr_at_fpr_0_05": 0.0,
+      "tpr_at_fpr_0_10": 0.0,
+      "roc": {
+        "fpr": [
+          0.0,
+          1.0
+        ],
+        "tpr": [
+          0.0,
+          1.0
+        ],
+        "thresholds": [
+          Infinity,
+          -Infinity
+        ]
+      },
+      "n_common": 49060,
+      "confusion_matrix_at_detector_threshold": {
+        "human_pred_human": 37616,
+        "human_pred_ai": 11444,
+        "ai_pred_human": 19032,
+        "ai_pred_ai": 30028
+      },
+      "ai_detected_rate_at_detector_threshold": 0.6120668569099063,
+      "human_false_positive_rate_at_detector_threshold": 0.233265389319201
+    },
+    "llama32_3b__dist_sft": {
+      "auroc": 0.99999999916905,
+      "tpr_at_fpr_0_01": 0.0,
+      "tpr_at_fpr_0_05": 0.0,
+      "tpr_at_fpr_0_10": 0.0,
+      "roc": {
+        "fpr": [
+          0.0,
+          1.0
+        ],
+        "tpr": [
+          0.0,
+          1.0
+        ],
+        "thresholds": [
+          Infinity,
+          -Infinity
+        ]
+      },
+      "n_common": 49060,
+      "confusion_matrix_at_detector_threshold": {
+        "human_pred_human": 37616,
+        "human_pred_ai": 11444,
+        "ai_pred_human": 26776,
+        "ai_pred_ai": 22284
+      },
+      "ai_detected_rate_at_detector_threshold": 0.45421932327761927,
+      "human_false_positive_rate_at_detector_threshold": 0.233265389319201
     }
   },
   "trend_by_model": {
@@ -590,15 +675,18 @@
     "llama32_3b": {
       "available_stages": [
         "baselm",
-        "sft"
+        "sft",
+        "dist_sft"
       ],
       "predicted_ai_counts": [
         23126,
-        25401
+        25401,
+        23020
       ],
       "predicted_ai_rates": [
         0.4501323575210215,
-        0.4934149184149184
+        0.4934149184149184,
+        0.4471986945372601
       ],
       "non_increasing_ai_count": false
     },
@@ -627,16 +715,19 @@
       "available_stages": [
         "baselm",
         "sft",
+        "dpo",
         "dist_sft"
       ],
       "predicted_ai_counts": [
         14702,
         21497,
+        30878,
         20245
       ],
       "predicted_ai_rates": [
         0.3292278753135077,
         0.4175796425796426,
+        0.5998057498057499,
         0.39325951825951827
       ],
       "non_increasing_ai_count": false
