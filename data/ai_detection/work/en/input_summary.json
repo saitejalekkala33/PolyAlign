@@ -5,20 +5,14 @@
   "current_path": "/home/umair/TW/PolyAlign/data/ai_detection/raw/english/merged_sft_dedup/current/test.jsonl",
   "human_rows": 51480,
   "current_rows": 51480,
-  "present_prediction_sources": 2,
+  "present_prediction_sources": 1,
   "missing_prediction_sources": [],
   "per_source_reports": {
-    "qwen25_3b__dpo": {
+    "llama32_3b__dpo": {
       "rows": 51480,
       "missing_or_bad_source_index_rows": 0,
       "duplicate_source_index_rows": 0,
-      "empty_text_rows": 64
-    },
-    "llama32_3b__dist_sft": {
-      "rows": 51480,
-      "missing_or_bad_source_index_rows": 0,
-      "duplicate_source_index_rows": 0,
-      "empty_text_rows": 225
+      "empty_text_rows": 209
     }
   },
   "sources": [
@@ -32,21 +26,12 @@
       "row_count": 51480
     },
     {
-      "source_id": "qwen25_3b__dpo",
-      "model_key": "qwen25_3b",
-      "stage": "dpo",
-      "path": "/home/umair/TW/PolyAlign/data/ai_detection/raw/english/merged_sft_dedup/runs/qwen25-3b-dpo-en/predictions.jsonl",
-      "label": 1,
-      "input_path": "/home/umair/TW/PolyAlign/data/ai_detection/work/en/inputs/qwen25_3b__dpo.jsonl",
-      "row_count": 51480
-    },
-    {
-      "source_id": "llama32_3b__dist_sft",
+      "source_id": "llama32_3b__dpo",
       "model_key": "llama32_3b",
-      "stage": "dist_sft",
-      "path": "/home/umair/TW/PolyAlign/data/ai_detection/raw/english/merged_sft_dedup/runs/llama32_3b_dist-sft-test-en/predictions.jsonl",
+      "stage": "dpo",
+      "path": "/home/umair/TW/PolyAlign/data/ai_detection/raw/english/merged_sft_dedup/runs/llama32-3b-dpo-en/predictions.jsonl",
       "label": 1,
-      "input_path": "/home/umair/TW/PolyAlign/data/ai_detection/work/en/inputs/llama32_3b__dist_sft.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/ai_detection/work/en/inputs/llama32_3b__dpo.jsonl",
       "row_count": 51480
     }
   ]
