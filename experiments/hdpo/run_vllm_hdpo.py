@@ -7,14 +7,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "rl"))
 
-from vllm_pair_inference import QWEN_DEFAULT_SYSTEM_PROMPT, build_pair_parser, run_pair_inference
+from vllm_pair_inference import build_pair_parser, run_pair_inference
+
+
+DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant."
 
 
 def build_parser():
     return build_pair_parser(
         description="Run batched HDPO-checkpoint inference against a vLLM completions endpoint.",
         default_system_mode="profile",
-        default_system_prompt=QWEN_DEFAULT_SYSTEM_PROMPT,
+        default_system_prompt=DEFAULT_SYSTEM_PROMPT,
     )
 
 

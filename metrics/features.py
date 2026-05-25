@@ -30,6 +30,16 @@ class ArtifactInfo:
     status: str
 
 
+REFERENCE_OUTPUT_FIELDS = ("output", "chosen", "reference_output", "human_answer")
+
+
+def resolve_reference_output(row: dict[str, Any]) -> Any:
+    for field_name in REFERENCE_OUTPUT_FIELDS:
+        if field_name in row and row[field_name] is not None:
+            return row[field_name]
+    return ""
+
+
 def build_alignment_report(
     test_lf_rows: list[dict[str, Any]],
     prediction_rows: list[dict[str, Any]],
@@ -55,11 +65,12 @@ def build_alignment_report(
         )
 
     for lf_row, current_row in zip(test_lf_rows, current_test_rows, strict=True):
+        reference_output = resolve_reference_output(lf_row)
         if lf_row.get("instruction") != current_row.get("question"):
             mismatches["current_instruction_mismatches"] += 1
         if lf_row.get("input") != current_row.get("context"):
             mismatches["current_input_mismatches"] += 1
-        if lf_row.get("output") != current_row.get("human_answer"):
+        if reference_output != current_row.get("human_answer"):
             mismatches["current_output_mismatches"] += 1
         if (lf_row.get("history") or []) != flatten_dialogue_history(current_row.get("dialogue_history") or []):
             mismatches["current_history_mismatches"] += 1
@@ -77,7 +88,7 @@ def build_alignment_report(
             mismatches["input_mismatches"] += 1
         if (row.get("history") or []) != (lf_row.get("history") or []):
             mismatches["history_mismatches"] += 1
-        if row.get("reference_output") != lf_row.get("output"):
+        if row.get("reference_output") != resolve_reference_output(lf_row):
             mismatches["reference_output_mismatches"] += 1
 
     observed_set = set(observed_indices)

@@ -23,22 +23,22 @@ SOURCE_CONFIGS: dict[str, dict[str, Any]] = {
         "human_hf_path": "english/merged_sft_dedup/llamafactory/test.json",
         "current_hf_path": "english/merged_sft_dedup/current/test.jsonl",
         "sources": [
-            ("qwen25_1_5b__baselm", "qwen25_1_5b", "baselm", "english/merged_sft_dedup/runs/qwen25_1_5b/predictions.jsonl"),
-            ("qwen25_1_5b__sft", "qwen25_1_5b", "sft", "english/merged_sft_dedup/runs/qwen25_1_5_sft/predictions.jsonl"),
-            ("qwen25_1_5b__dpo", "qwen25_1_5b", "dpo", "english/merged_sft_dedup/runs/qwen25-1-5b-dpo-en/predictions.jsonl"),
-            ("qwen25_1_5b__dist_sft", "qwen25_1_5b", "dist_sft", "english/merged_sft_dedup/runs/qwen25_1_5b_dist_sft_test-en/predictions.jsonl"),
-            ("gemma2_2b__baselm", "gemma2_2b", "baselm", "english/merged_sft_dedup/runs/gemma_2_2b/predictions.jsonl"),
-            ("gemma2_2b__sft", "gemma2_2b", "sft", "english/merged_sft_dedup/runs/gemma2_2b_sft-test-en/predictions.jsonl"),
-            ("gemma2_2b__dpo", "gemma2_2b", "dpo", "english/merged_sft_dedup/runs/gemma2-2b-dpo-en/predictions.jsonl"),
-            ("gemma2_2b__dist_sft", "gemma2_2b", "dist_sft", "english/merged_sft_dedup/runs/gemma2_2b_dist-sft-test-en/predictions.jsonl"),
-            ("qwen25_3b__baselm", "qwen25_3b", "baselm", "english/merged_sft_dedup/runs/qwen25_3b/predictions.jsonl"),
-            ("qwen25_3b__sft", "qwen25_3b", "sft", "english/merged_sft_dedup/runs/qwen25_3b_sft-test-en/predictions.jsonl"),
-            # ("qwen25_3b__dpo", "qwen25_3b", "dpo", "english/merged_sft_dedup/runs/qwen25-3b-dpo-en/predictions.jsonl"),
-            ("qwen25_3b__dist_sft", "qwen25_3b", "dist_sft", "english/merged_sft_dedup/runs/qwen_3b_dist-sft-test-en/predictions.jsonl"),
-            ("llama32_3b__baselm", "llama32_3b", "baselm", "english/merged_sft_dedup/runs/llama32_3b/predictions.jsonl"),
-            ("llama32_3b__sft", "llama32_3b", "sft", "english/merged_sft_dedup/runs/llama32_3b_sft-test-en/predictions.jsonl"),
-            # ("llama32_3b__dpo", "llama32_3b", "dpo", "english/merged_sft_dedup/runs/llama32_3b-dpo-en/predictions.jsonl"),
-            # ("llama32_3b__dist_sft", "llama32_3b", "dist_sft", "english/merged_sft_dedup/runs/llama32_3b_dist-sft-test-en/predictions.jsonl"),
+            # ("qwen25_1_5b__baselm", "qwen25_1_5b", "baselm", "english/merged_sft_dedup/runs/qwen25_1_5b/predictions.jsonl"),
+            # ("qwen25_1_5b__sft", "qwen25_1_5b", "sft", "english/merged_sft_dedup/runs/qwen25_1_5_sft/predictions.jsonl"),
+            # ("qwen25_1_5b__dpo", "qwen25_1_5b", "dpo", "english/merged_sft_dedup/runs/qwen25-1-5b-dpo-en/predictions.jsonl"),
+            # ("qwen25_1_5b__dist_sft", "qwen25_1_5b", "dist_sft", "english/merged_sft_dedup/runs/qwen25_1_5b_dist_sft_test-en/predictions.jsonl"),
+            # ("gemma2_2b__baselm", "gemma2_2b", "baselm", "english/merged_sft_dedup/runs/gemma_2_2b/predictions.jsonl"),
+            # ("gemma2_2b__sft", "gemma2_2b", "sft", "english/merged_sft_dedup/runs/gemma2_2b_sft-test-en/predictions.jsonl"),
+            # ("gemma2_2b__dpo", "gemma2_2b", "dpo", "english/merged_sft_dedup/runs/gemma2-2b-dpo-en/predictions.jsonl"),
+            # ("gemma2_2b__dist_sft", "gemma2_2b", "dist_sft", "english/merged_sft_dedup/runs/gemma2_2b_dist-sft-test-en/predictions.jsonl"),
+            # ("qwen25_3b__baselm", "qwen25_3b", "baselm", "english/merged_sft_dedup/runs/qwen25_3b/predictions.jsonl"),
+            # ("qwen25_3b__sft", "qwen25_3b", "sft", "english/merged_sft_dedup/runs/qwen25_3b_sft-test-en/predictions.jsonl"),
+            ("qwen25_3b__dpo", "qwen25_3b", "dpo", "english/merged_sft_dedup/runs/qwen25-3b-dpo-en/predictions.jsonl"),
+            # ("qwen25_3b__dist_sft", "qwen25_3b", "dist_sft", "english/merged_sft_dedup/runs/qwen_3b_dist-sft-test-en/predictions.jsonl"),
+            # ("llama32_3b__baselm", "llama32_3b", "baselm", "english/merged_sft_dedup/runs/llama32_3b/predictions.jsonl"),
+            # ("llama32_3b__sft", "llama32_3b", "sft", "english/merged_sft_dedup/runs/llama32_3b_sft-test-en/predictions.jsonl"),
+            ("llama32_3b__dpo", "llama32_3b", "dpo", "english/merged_sft_dedup/runs/llama32-3b-dpo-en/predictions.jsonl"),
+            ("llama32_3b__dist_sft", "llama32_3b", "dist_sft", "english/merged_sft_dedup/runs/llama32_3b_dist-sft-test-en/predictions.jsonl"),
         ],
     },
     "zh": {
@@ -46,25 +46,86 @@ SOURCE_CONFIGS: dict[str, dict[str, Any]] = {
         "human_hf_path": "chinese/merged_sft_dedup/llamafactory/test.json",
         "current_hf_path": "chinese/merged_sft_dedup/current/test.jsonl",
         "sources": [
-            ("qwen25_1_5b__baselm", "qwen25_1_5b", "baselm", "chinese/merged_sft_dedup/runs/qwen25_1_5b_zh/predictions.jsonl"),
-            ("qwen25_1_5b__sft", "qwen25_1_5b", "sft", "chinese/merged_sft_dedup/runs/qwen25_1_5_sft-zh/predictions.jsonl"),
-            ("qwen25_1_5b__dpo", "qwen25_1_5b", "dpo", "chinese/merged_sft_dedup/runs/qwen25-15b-dpo-zh/predictions.jsonl"),
-            ("qwen25_1_5b__dist_sft", "qwen25_1_5b", "dist_sft", "chinese/merged_sft_dedup/runs/qwen25_1_5b_dist_sft_zh_test/predictions.jsonl"),
-            ("gemma2_2b__baselm", "gemma2_2b", "baselm", "chinese/merged_sft_dedup/runs/gemma_2_2b_zh/predictions.jsonl"),
-            ("gemma2_2b__sft", "gemma2_2b", "sft", "chinese/merged_sft_dedup/runs/gemma2-2b-sft-zh/predictions.jsonl"),
-            ("gemma2_2b__dpo", "gemma2_2b", "dpo", "chinese/merged_sft_dedup/runs/gemma2-2b-dpo-zh/predictions.jsonl"),
-            ("gemma2_2b__dist_sft", "gemma2_2b", "dist_sft", "chinese/merged_sft_dedup/runs/gemma2_2b_dist-sft-zh-test/predictions.jsonl"),
-            ("qwen25_3b__baselm", "qwen25_3b", "baselm", "chinese/merged_sft_dedup/runs/qwen25_3b_zh/predictions.jsonl"),
-            ("qwen25_3b__sft", "qwen25_3b", "sft", "chinese/merged_sft_dedup/runs/qwen25_3b_sft-zh-test/predictions.jsonl"),
-            ("qwen25_3b__dpo", "qwen25_3b", "dpo", "chinese/merged_sft_dedup/runs/qwen25-3b-dpo-zh/predictions.jsonl"),
-            ("qwen25_3b__dist_sft", "qwen25_3b", "dist_sft", "chinese/merged_sft_dedup/runs/qwen25_3b_dist-sft-zh-test/predictions.jsonl"),
-            ("llama32_3b__baselm", "llama32_3b", "baselm", "chinese/merged_sft_dedup/runs/llama32_3b_zh/predictions.jsonl"),
-            ("llama32_3b__sft", "llama32_3b", "sft", "chinese/merged_sft_dedup/runs/llama3_2-3b_sft-zh-test/predictions.jsonl"),
-            ("llama32_3b__dpo", "llama32_3b", "dpo", "chinese/merged_sft_dedup/runs/llama32-3b-dpo-zh/predictions.jsonl"),
-            ("llama32_3b__dist_sft", "llama32_3b", "dist_sft", "chinese/merged_sft_dedup/runs/llama32_3b_dist_sft_zh_test/predictions.jsonl"),
+            (
+                "qwen25_1_5b__hdpo",
+                "qwen25_1_5b",
+                "hdpo",
+                "chinese/merged_sft_dedup/runs/qwen25-1-5b-hdpo-zh-ref-conditioned/predictions.jsonl",
+            ),
+            (
+                "gemma2_2b__hdpo",
+                "gemma2_2b",
+                "hdpo",
+                "chinese/merged_sft_dedup/runs/gemma2-2b-hdpo-zh-ref-conditioned/predictions.jsonl",
+            ),
+            (
+                "qwen25_3b__hdpo",
+                "qwen25_3b",
+                "hdpo",
+                "chinese/merged_sft_dedup/runs/qwen25-3b-hdpo-zh-ref-conditioned/predictions.jsonl",
+            ),
+            (
+                "llama32_3b__hdpo",
+                "llama32_3b",
+                "hdpo",
+                "chinese/merged_sft_dedup/runs/llama32-3b-hdpo-zh-ref-conditioned/predictions.jsonl",
+            ),
         ],
     },
 }
+
+
+def _normalize_source_entry(entry: Any) -> tuple[str, str, str, str]:
+    if isinstance(entry, dict):
+        values = (
+            entry.get("source_id"),
+            entry.get("model_key"),
+            entry.get("stage"),
+            entry.get("path") or entry.get("rel_path") or entry.get("hf_path"),
+        )
+    else:
+        values = tuple(entry) if isinstance(entry, (list, tuple)) else ()
+    if len(values) != 4 or not all(isinstance(value, str) and value for value in values):
+        raise ValueError(f"Invalid source config entry: {entry!r}")
+    return values  # type: ignore[return-value]
+
+
+def _apply_source_config_overrides() -> None:
+    config_text = os.environ.get("POLYALIGN_AI_SOURCE_CONFIG_JSON")
+    config_file = os.environ.get("POLYALIGN_AI_SOURCE_CONFIG_FILE")
+    if config_file:
+        config_text = Path(config_file).read_text(encoding="utf-8")
+    if not config_text:
+        return
+
+    raw_config = json.loads(config_text)
+    if not isinstance(raw_config, dict):
+        raise ValueError("POLYALIGN_AI_SOURCE_CONFIG must decode to a JSON object.")
+
+    for lang, override in raw_config.items():
+        if lang not in SOURCE_CONFIGS:
+            raise ValueError(f"Unknown language in source config override: {lang}")
+        if not isinstance(override, dict):
+            raise ValueError(f"Source config override for {lang} must be an object.")
+
+        merged = dict(SOURCE_CONFIGS[lang])
+        for key in ("hf_prefix", "human_hf_path", "current_hf_path"):
+            if key in override:
+                value = override[key]
+                if not isinstance(value, str) or not value:
+                    raise ValueError(f"{lang}.{key} must be a non-empty string.")
+                merged[key] = value
+
+        if "sources" in override:
+            sources = override["sources"]
+            if not isinstance(sources, list):
+                raise ValueError(f"{lang}.sources must be a list.")
+            merged["sources"] = [_normalize_source_entry(entry) for entry in sources]
+
+        SOURCE_CONFIGS[lang] = merged
+
+
+_apply_source_config_overrides()
 
 
 DETECTOR_ORDER = ("binoculars", "fast_detect_gpt", "ghostbuster", "radar", "detect_gpt")
@@ -1077,9 +1138,13 @@ def summarize(args: argparse.Namespace) -> None:
     work_dir = Path(args.work_dir)
     manifest = json.loads((work_dir / args.lang / "manifest.json").read_text(encoding="utf-8"))
     score_dir = work_dir / args.lang / "scores" / args.detector
+    output_path = work_dir / args.lang / "metrics" / args.detector / "summary.json"
+    existing_summary: dict[str, Any] = {}
+    if args.merge_existing and output_path.exists():
+        existing_summary = json.loads(output_path.read_text(encoding="utf-8"))
     human_scores = _load_scores(score_dir / "human.jsonl")
-    source_summaries: dict[str, Any] = {}
-    pair_metrics: dict[str, Any] = {}
+    source_summaries: dict[str, Any] = dict(existing_summary.get("source_summaries", {}))
+    pair_metrics: dict[str, Any] = dict(existing_summary.get("pair_metrics_vs_human", {}))
 
     for source in manifest["sources"]:
         source_id = source["source_id"]
@@ -1135,7 +1200,14 @@ def summarize(args: argparse.Namespace) -> None:
         pair_metrics[source_id] = metrics
 
     trends: dict[str, Any] = {}
-    for model_key in sorted({source["model_key"] for source in manifest["sources"] if source["model_key"] != "human"}):
+    model_keys = sorted(
+        {
+            summary.get("model_key")
+            for summary in source_summaries.values()
+            if isinstance(summary, dict) and summary.get("model_key") not in {None, "", "human"}
+        }
+    )
+    for model_key in model_keys:
         points = []
         for stage in STAGE_ORDER:
             source_id = f"{model_key}__{stage}"
@@ -1154,11 +1226,11 @@ def summarize(args: argparse.Namespace) -> None:
         "language": args.lang,
         "detector": args.detector,
         "score_dir": str(score_dir),
+        "merge_existing": bool(args.merge_existing),
         "source_summaries": source_summaries,
         "pair_metrics_vs_human": pair_metrics,
         "trend_by_model": trends,
     }
-    output_path = work_dir / args.lang / "metrics" / args.detector / "summary.json"
     write_json(output_path, summary)
     print(f"[summary] wrote {output_path}")
 
@@ -1177,8 +1249,12 @@ def mark_skipped(args: argparse.Namespace) -> None:
 
 def combine_summaries(args: argparse.Namespace) -> None:
     work_dir = Path(args.work_dir)
+    output_path = work_dir / "metrics" / "combined_summary.json"
     combined: dict[str, Any] = {}
-    for lang in ["zh", "en"]:
+    if args.merge_existing and output_path.exists():
+        combined = json.loads(output_path.read_text(encoding="utf-8"))
+    languages = ["en", "zh"] if args.lang == "all" else [args.lang]
+    for lang in languages:
         combined[lang] = {}
         for detector in DETECTOR_ORDER:
             path = work_dir / lang / "metrics" / detector / "summary.json"
@@ -1186,8 +1262,8 @@ def combine_summaries(args: argparse.Namespace) -> None:
                 combined[lang][detector] = json.loads(path.read_text(encoding="utf-8"))
             else:
                 combined[lang][detector] = {"status": "missing"}
-    write_json(work_dir / "metrics" / "combined_summary.json", combined)
-    print(f"[summary] wrote {work_dir / 'metrics' / 'combined_summary.json'}")
+    write_json(output_path, combined)
+    print(f"[summary] wrote {output_path}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1238,6 +1314,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--work-dir", required=True)
     p.add_argument("--lang", choices=["en", "zh"], required=True)
     p.add_argument("--detector", choices=list(DETECTOR_ORDER), required=True)
+    p.add_argument("--merge-existing", action="store_true")
     p.set_defaults(func=summarize)
 
     p = sub.add_parser("mark-skipped")
@@ -1249,6 +1326,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("combine-summaries")
     p.add_argument("--work-dir", required=True)
+    p.add_argument("--lang", choices=["all", "en", "zh"], default="all")
+    p.add_argument("--merge-existing", action="store_true")
     p.set_defaults(func=combine_summaries)
 
     return parser

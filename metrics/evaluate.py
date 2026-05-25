@@ -14,6 +14,7 @@ from metrics.features import (
     frame_to_distribution_map,
     load_feature_frame,
     load_primary_rows,
+    resolve_reference_output,
 )
 from metrics.io import EvaluationPaths, resolve_evaluation_paths, write_json
 from metrics.metrics_lib import (
@@ -83,7 +84,7 @@ def build_aligned_frame(
                 "bucket_id": current_row["bucket_id"],
                 "question": current_row["question"],
                 "context": current_row["context"],
-                "reference_output": test_row["output"],
+                "reference_output": resolve_reference_output(test_row),
                 "prediction": prediction_row.get("prediction", "") or "",
                 "model_name": prediction_row.get("model_name", ""),
                 "finish_reason": prediction_row.get("finish_reason", ""),
