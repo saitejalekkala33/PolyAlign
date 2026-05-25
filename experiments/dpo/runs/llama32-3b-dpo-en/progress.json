@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "run_kind": "dpo",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "elapsed_seconds": 0.002,
+  "predictions_path": "/home/umair/TW/PolyAlign/experiments/dpo/runs/llama32-3b-dpo-en/predictions.jsonl",
+  "batch_size": 4
+}

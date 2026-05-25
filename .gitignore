@@ -31,3 +31,6 @@ data/ai_detection/work/en/inputs/
 data/ai_detection/work/zh/inputs/ 
 data/ai_detection/work/en/scores/ 
 data/ai_detection/work/zh/scores/ 
+# Large generated prediction files
+experiments/dpo/runs/llama32-3b-dpo-en/predictions.jsonl
+experiments/dpo/runs/llama32-3b-dpo-en/predictions.jsonl.bak

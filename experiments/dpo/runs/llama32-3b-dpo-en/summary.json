@@ -1,0 +1,17 @@
+{
+  "run_kind": "dpo",
+  "input_path": "/home/umair/TW/PolyAlign/vendor/LlamaFactory/data/test.json",
+  "output_dir": "/home/umair/TW/PolyAlign/experiments/dpo/runs/llama32-3b-dpo-en",
+  "records_total": 51480,
+  "records_scheduled": 51480,
+  "records_completed": 51480,
+  "records_remaining": 0,
+  "model_name": "llama32-3b-dpo-en",
+  "tokenizer_name_or_path": "/home/umair/TW/PolyAlign/models/llama32-3b-dpo-en",
+  "system_mode": "record-or-default",
+  "base_url": "http://127.0.0.1:8090",
+  "predictions_path": "/home/umair/TW/PolyAlign/experiments/dpo/runs/llama32-3b-dpo-en/predictions.jsonl",
+  "elapsed_seconds": 0.001,
+  "batch_size": 4,
+  "resume": true
+}
