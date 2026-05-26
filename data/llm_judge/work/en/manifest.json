@@ -150,6 +150,46 @@
       "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/llama32_3b_dist-sft-test-en/predictions.jsonl",
       "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/llama32_3b__dist_sft.jsonl",
       "row_count": 51480
+    },
+    {
+      "source_id": "llama32_3b__dpo",
+      "model_key": "llama32_3b",
+      "stage": "dpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/llama32-3b-dpo-en/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/llama32_3b__dpo.jsonl",
+      "row_count": 51480
+    },
+    {
+      "source_id": "qwen25_1_5b__hdpo",
+      "model_key": "qwen25_1_5b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25-1-5b-hdpo-en-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_1_5b__hdpo.jsonl",
+      "row_count": 37271
+    },
+    {
+      "source_id": "qwen25_3b__hdpo",
+      "model_key": "qwen25_3b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/qwen25-3b-hdpo-en-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/qwen25_3b__hdpo.jsonl",
+      "row_count": 39863
+    },
+    {
+      "source_id": "gemma2_2b__hdpo",
+      "model_key": "gemma2_2b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/english/merged_sft_dedup/runs/gemma2-2b-hdpo-en-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/en/inputs/gemma2_2b__hdpo.jsonl",
+      "row_count": 38887
     }
   ]
 }

@@ -1,13 +1,14 @@
 {
   "language": "zh",
   "mode": "full_context_llm_judge_inputs",
+  "source_set": "selected_missing",
   "human_path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/llamafactory/test.json",
   "human_candidate_scoring": false,
   "current_path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/current/test.jsonl",
   "human_rows": 6357,
   "current_rows": 6357,
   "expected_aligned_rows": 6357,
-  "present_prediction_sources": 16,
+  "present_prediction_sources": 20,
   "missing_prediction_sources": [],
   "per_source_reports": {
     "qwen25_1_5b__baselm": {
@@ -153,6 +154,42 @@
       "empty_candidate_rows": 0,
       "instruction_mismatches": 0,
       "input_mismatches": 0
+    },
+    "qwen25_1_5b__hdpo": {
+      "rows": 3398,
+      "missing_or_bad_source_index_rows": 0,
+      "out_of_range_source_index_rows": 0,
+      "duplicate_source_index_rows": 0,
+      "empty_candidate_rows": 0,
+      "instruction_mismatches": 3398,
+      "input_mismatches": 3242
+    },
+    "gemma2_2b__hdpo": {
+      "rows": 4368,
+      "missing_or_bad_source_index_rows": 0,
+      "out_of_range_source_index_rows": 0,
+      "duplicate_source_index_rows": 0,
+      "empty_candidate_rows": 0,
+      "instruction_mismatches": 4367,
+      "input_mismatches": 4058
+    },
+    "qwen25_3b__hdpo": {
+      "rows": 3260,
+      "missing_or_bad_source_index_rows": 0,
+      "out_of_range_source_index_rows": 0,
+      "duplicate_source_index_rows": 0,
+      "empty_candidate_rows": 0,
+      "instruction_mismatches": 3260,
+      "input_mismatches": 3173
+    },
+    "llama32_3b__hdpo": {
+      "rows": 3507,
+      "missing_or_bad_source_index_rows": 0,
+      "out_of_range_source_index_rows": 0,
+      "duplicate_source_index_rows": 0,
+      "empty_candidate_rows": 0,
+      "instruction_mismatches": 3507,
+      "input_mismatches": 3315
     }
   },
   "sources": [
@@ -315,6 +352,46 @@
       "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/llama32_3b_dist_sft_zh_test/predictions.jsonl",
       "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/llama32_3b__dist_sft.jsonl",
       "row_count": 6357
+    },
+    {
+      "source_id": "qwen25_1_5b__hdpo",
+      "model_key": "qwen25_1_5b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25-1-5b-hdpo-zh-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_1_5b__hdpo.jsonl",
+      "row_count": 3398
+    },
+    {
+      "source_id": "gemma2_2b__hdpo",
+      "model_key": "gemma2_2b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/gemma2-2b-hdpo-zh-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/gemma2_2b__hdpo.jsonl",
+      "row_count": 4368
+    },
+    {
+      "source_id": "qwen25_3b__hdpo",
+      "model_key": "qwen25_3b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/qwen25-3b-hdpo-zh-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/qwen25_3b__hdpo.jsonl",
+      "row_count": 3260
+    },
+    {
+      "source_id": "llama32_3b__hdpo",
+      "model_key": "llama32_3b",
+      "stage": "hdpo",
+      "source_type": "model",
+      "label": 1,
+      "path": "/home/umair/TW/PolyAlign/data/llm_judge/raw/chinese/merged_sft_dedup/runs/llama32-3b-hdpo-zh-ref-conditioned/predictions.jsonl",
+      "input_path": "/home/umair/TW/PolyAlign/data/llm_judge/work/zh/inputs/llama32_3b__hdpo.jsonl",
+      "row_count": 3507
     }
   ]
 }

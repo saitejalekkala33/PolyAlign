@@ -66,6 +66,40 @@ SOURCE_CONFIGS: dict[str, dict[str, Any]] = {
 }
 
 
+SELECTED_MISSING_SOURCE_CONFIGS: dict[str, dict[str, Any]] = {
+    "en": {
+        "hf_prefix": SOURCE_CONFIGS["en"]["hf_prefix"],
+        "human_hf_path": SOURCE_CONFIGS["en"]["human_hf_path"],
+        "current_hf_path": SOURCE_CONFIGS["en"]["current_hf_path"],
+        "sources": [
+            ("qwen25_3b__dpo", "qwen25_3b", "dpo", "english/merged_sft_dedup/runs/qwen25-3b-dpo-en/predictions.jsonl"),
+            ("llama32_3b__dpo", "llama32_3b", "dpo", "english/merged_sft_dedup/runs/llama32-3b-dpo-en/predictions.jsonl"),
+            ("llama32_3b__dist_sft", "llama32_3b", "dist_sft", "english/merged_sft_dedup/runs/llama32_3b_dist-sft-test-en/predictions.jsonl"),
+            ("qwen25_1_5b__hdpo", "qwen25_1_5b", "hdpo", "english/merged_sft_dedup/runs/qwen25-1-5b-hdpo-en-ref-conditioned/predictions.jsonl"),
+            ("qwen25_3b__hdpo", "qwen25_3b", "hdpo", "english/merged_sft_dedup/runs/qwen25-3b-hdpo-en-ref-conditioned/predictions.jsonl"),
+            ("gemma2_2b__hdpo", "gemma2_2b", "hdpo", "english/merged_sft_dedup/runs/gemma2-2b-hdpo-en-ref-conditioned/predictions.jsonl"),
+        ],
+    },
+    "zh": {
+        "hf_prefix": SOURCE_CONFIGS["zh"]["hf_prefix"],
+        "human_hf_path": SOURCE_CONFIGS["zh"]["human_hf_path"],
+        "current_hf_path": SOURCE_CONFIGS["zh"]["current_hf_path"],
+        "sources": [
+            ("qwen25_1_5b__hdpo", "qwen25_1_5b", "hdpo", "chinese/merged_sft_dedup/runs/qwen25-1-5b-hdpo-zh-ref-conditioned/predictions.jsonl"),
+            ("gemma2_2b__hdpo", "gemma2_2b", "hdpo", "chinese/merged_sft_dedup/runs/gemma2-2b-hdpo-zh-ref-conditioned/predictions.jsonl"),
+            ("qwen25_3b__hdpo", "qwen25_3b", "hdpo", "chinese/merged_sft_dedup/runs/qwen25-3b-hdpo-zh-ref-conditioned/predictions.jsonl"),
+            ("llama32_3b__hdpo", "llama32_3b", "hdpo", "chinese/merged_sft_dedup/runs/llama32-3b-hdpo-zh-ref-conditioned/predictions.jsonl"),
+        ],
+    },
+}
+
+
+SOURCE_CONFIG_SETS: dict[str, dict[str, dict[str, Any]]] = {
+    "all": SOURCE_CONFIGS,
+    "selected_missing": SELECTED_MISSING_SOURCE_CONFIGS,
+}
+
+
 STAGE_ORDER = ("human", "baselm", "sft", "dpo", "dist_sft", "hdpo")
 DEFAULT_PROMPTS_PATH = Path(__file__).with_name("llm-judge-prompts.py")
 DEFAULT_RUBRIC_PATH = Path(__file__).with_name("rubric.yaml")
@@ -185,11 +219,43 @@ def load_prompts_module(path: Path) -> Any:
     return module
 
 
+def source_configs_for_set(source_set: str) -> dict[str, dict[str, Any]]:
+    try:
+        return SOURCE_CONFIG_SETS[source_set]
+    except KeyError as exc:
+        raise ValueError(f"Unknown source set: {source_set}") from exc
+
+
+def merge_sources_by_id(
+    existing_sources: list[dict[str, Any]],
+    new_sources: list[dict[str, Any]],
+    *,
+    keep_human: bool,
+) -> list[dict[str, Any]]:
+    merged: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for source in existing_sources:
+        source_id = source.get("source_id")
+        if not source_id or (source_id == "human" and not keep_human):
+            continue
+        merged[source_id] = source
+        order.append(source_id)
+    for source in new_sources:
+        source_id = source.get("source_id")
+        if not source_id or (source_id == "human" and not keep_human):
+            continue
+        if source_id not in merged:
+            order.append(source_id)
+        merged[source_id] = source
+    return [merged[source_id] for source_id in order if source_id in merged]
+
+
 def list_downloads(args: argparse.Namespace) -> None:
     paths: list[str] = []
     languages = ["en", "zh"] if args.lang == "all" else [args.lang]
+    source_configs = source_configs_for_set(args.source_set)
     for lang in languages:
-        config = SOURCE_CONFIGS[lang]
+        config = source_configs[lang]
         paths.append(config["current_hf_path"])
         if args.include_human:
             paths.append(config["human_hf_path"])
@@ -240,17 +306,19 @@ def _human_path_for_lang(args: argparse.Namespace, lang: str, raw_root: Path) ->
     explicit = getattr(args, f"human_{lang}", None)
     if explicit:
         return Path(explicit)
-    return raw_root / SOURCE_CONFIGS[lang]["human_hf_path"]
+    source_configs = source_configs_for_set(getattr(args, "source_set", "all"))
+    return raw_root / source_configs[lang]["human_hf_path"]
 
 
 def build_inputs(args: argparse.Namespace) -> None:
     raw_root = Path(args.raw_root)
     output_root = Path(args.output_root)
     languages = ["en", "zh"] if args.lang == "all" else [args.lang]
+    source_configs = source_configs_for_set(args.source_set)
     combined_summary: dict[str, Any] = {}
 
     for lang in languages:
-        config = SOURCE_CONFIGS[lang]
+        config = source_configs[lang]
         human_path = _human_path_for_lang(args, lang, raw_root)
         current_path = raw_root / config["current_hf_path"]
         if not human_path.exists():
@@ -432,6 +500,7 @@ def build_inputs(args: argparse.Namespace) -> None:
         summary = {
             "language": lang,
             "mode": "full_context_llm_judge_inputs",
+            "source_set": args.source_set,
             "human_path": str(human_path),
             "human_candidate_scoring": args.include_human_candidates,
             "current_path": str(current_path),
@@ -443,6 +512,47 @@ def build_inputs(args: argparse.Namespace) -> None:
             "per_source_reports": per_source_reports,
             "sources": manifest_sources,
         }
+        manifest_path = output_root / lang / "manifest.json"
+        summary_path = output_root / lang / "input_summary.json"
+        if args.merge_existing_manifest and manifest_path.exists():
+            previous_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            previous_sources = previous_manifest.get("sources") or []
+            if isinstance(previous_sources, list):
+                manifest_sources = merge_sources_by_id(
+                    previous_sources,
+                    manifest_sources,
+                    keep_human=args.include_human_candidates,
+                )
+                summary["sources"] = manifest_sources
+                summary["present_prediction_sources"] = sum(
+                    1 for source in manifest_sources if source.get("source_type") == "model"
+                )
+        if args.merge_existing_manifest and summary_path.exists():
+            previous_summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            if isinstance(previous_summary, dict):
+                previous_reports = previous_summary.get("per_source_reports") or {}
+                if isinstance(previous_reports, dict):
+                    merged_reports = dict(previous_reports)
+                    merged_reports.update(per_source_reports)
+                    summary["per_source_reports"] = merged_reports
+                previous_missing = {
+                    item.get("source_id"): item
+                    for item in previous_summary.get("missing_prediction_sources", [])
+                    if isinstance(item, dict) and item.get("source_id")
+                }
+                present_source_ids = {
+                    source.get("source_id")
+                    for source in manifest_sources
+                    if source.get("source_id")
+                }
+                previous_missing = {
+                    source_id: item
+                    for source_id, item in previous_missing.items()
+                    if source_id not in present_source_ids
+                }
+                for item in missing_source_files:
+                    previous_missing[item["source_id"]] = item
+                summary["missing_prediction_sources"] = list(previous_missing.values())
         write_json(output_root / lang / "input_summary.json", summary)
         write_json(output_root / lang / "manifest.json", {"language": lang, "sources": manifest_sources})
         combined_summary[lang] = summary
@@ -631,6 +741,19 @@ def parse_judge_id_filter(value: str | None) -> list[str] | None:
         if chunk:
             judge_ids.append(chunk)
     return judge_ids or None
+
+
+def parse_source_id_filter(values: list[str] | None) -> set[str] | None:
+    if not values:
+        return None
+    source_ids: set[str] = set()
+    for value in values:
+        for chunk in value.replace(",", " ").split():
+            chunk = chunk.strip()
+            if chunk:
+                source_ids.add(chunk)
+    return source_ids or None
+
 
 def extract_json_payload(text: str) -> dict[str, Any]:
     text = normalize_text(text)
@@ -1178,6 +1301,8 @@ def judge(args: argparse.Namespace) -> None:
         if not getattr(tokenizer, "chat_template", None):
             raise ValueError("Judge tokenizer must provide a chat_template for prompt rendering.")
     chat_template_kwargs = parse_json_object(args.chat_template_kwargs_json)
+    include_source_ids = parse_source_id_filter(args.include_source_id)
+    exclude_source_ids = parse_source_id_filter(args.exclude_source_id)
 
     languages = ["en", "zh"] if args.lang == "all" else [args.lang]
     run_summaries: dict[str, Any] = {}
@@ -1185,9 +1310,18 @@ def judge(args: argparse.Namespace) -> None:
         manifest_path = work_dir / lang / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         summaries: list[dict[str, Any]] = []
+        manifest_sources = list(manifest["sources"])
+        if include_source_ids is not None:
+            manifest_sources = [
+                source for source in manifest_sources if source.get("source_id") in include_source_ids
+            ]
+        if exclude_source_ids is not None:
+            manifest_sources = [
+                source for source in manifest_sources if source.get("source_id") not in exclude_source_ids
+            ]
         selected_sources = [
             source
-            for source_index, source in enumerate(manifest["sources"])
+            for source_index, source in enumerate(manifest_sources)
             if source_index % args.source_num_shards == args.source_shard_index
         ]
         for source in selected_sources:
@@ -1222,7 +1356,10 @@ def judge(args: argparse.Namespace) -> None:
                 "source_shard_index": args.source_shard_index,
                 "source_num_shards": args.source_num_shards,
                 "sources_total": len(manifest["sources"]),
+                "sources_after_filter": len(manifest_sources),
                 "sources_selected": len(selected_sources),
+                "include_source_ids": sorted(include_source_ids) if include_source_ids is not None else None,
+                "exclude_source_ids": sorted(exclude_source_ids) if exclude_source_ids is not None else None,
                 "sources": summaries,
             },
         )
@@ -1248,14 +1385,21 @@ def _valid_score_rows(path: Path) -> tuple[list[dict[str, Any]], int]:
     return valid, total
 
 
-def summarize_judge_lang(work_dir: Path, lang: str, judge_id: str, rubric: dict[str, Any]) -> dict[str, Any]:
+def summarize_judge_lang(
+    work_dir: Path,
+    lang: str,
+    judge_id: str,
+    rubric: dict[str, Any],
+    *,
+    merge_existing: bool = False,
+) -> dict[str, Any]:
     manifest = json.loads((work_dir / lang / "manifest.json").read_text(encoding="utf-8"))
     score_dir = work_dir / lang / "scores" / judge_id
+    output_dir = work_dir / lang / "metrics" / "llm_judge" / judge_id
     dim_ids = dimension_ids(rubric)
     composite_names = list((rubric.get("composites") or {}).keys())
 
     source_summaries: dict[str, Any] = {}
-    csv_rows: list[dict[str, Any]] = []
     for source in manifest["sources"]:
         source_id = source["source_id"]
         path = score_dir / f"{source_id}.jsonl"
@@ -1285,25 +1429,27 @@ def summarize_judge_lang(work_dir: Path, lang: str, judge_id: str, rubric: dict[
             "prompt_tokens_max": max([int(row["prompt_tokens"]) for row in rows if row.get("prompt_tokens") is not None], default=None),
         }
         source_summaries[source_id] = summary
-        csv_row = {
-            "language": lang,
-            "judge_id": judge_id,
-            "source_id": source_id,
-            "model_key": source["model_key"],
-            "stage": source["stage"],
-            "source_type": source.get("source_type", ""),
-            "n_rows": total_rows,
-            "n_valid": len(rows),
-            "n_errors": total_rows - len(rows),
-        }
-        for dim_id, value in dim_means.items():
-            csv_row[f"mean_{dim_id}"] = "" if value is None else round(value, 6)
-        for name, value in composite_means.items():
-            csv_row[f"{name}_0_100"] = "" if value is None else round(value, 6)
-        csv_rows.append(csv_row)
+
+    if merge_existing and (output_dir / "summary.json").exists():
+        previous = json.loads((output_dir / "summary.json").read_text(encoding="utf-8"))
+        previous_summaries = previous.get("source_summaries") or {}
+        if isinstance(previous_summaries, dict):
+            merged_summaries = dict(previous_summaries)
+            for source_id, summary in source_summaries.items():
+                if summary.get("status") == "missing_scores" and source_id in merged_summaries:
+                    continue
+                merged_summaries[source_id] = summary
+            source_summaries = merged_summaries
 
     trends: dict[str, Any] = {}
-    for model_key in sorted({source["model_key"] for source in manifest["sources"]}):
+    model_keys = sorted(
+        {
+            str(summary.get("model_key"))
+            for summary in source_summaries.values()
+            if summary.get("model_key") is not None
+        }
+    )
+    for model_key in model_keys:
         points = []
         for stage in STAGE_ORDER:
             source_id = "human" if model_key == "human" and stage == "human" else f"{model_key}__{stage}"
@@ -1322,7 +1468,30 @@ def summarize_judge_lang(work_dir: Path, lang: str, judge_id: str, rubric: dict[
         if points:
             trends[model_key] = {"available_stages": [point["stage"] for point in points], "points": points}
 
-    output_dir = work_dir / lang / "metrics" / "llm_judge" / judge_id
+    csv_rows: list[dict[str, Any]] = []
+    for source_id in sorted(source_summaries):
+        summary = source_summaries[source_id]
+        csv_row = {
+            "language": lang,
+            "judge_id": judge_id,
+            "source_id": source_id,
+            "model_key": summary.get("model_key"),
+            "stage": summary.get("stage"),
+            "source_type": summary.get("source_type", ""),
+            "n_rows": summary.get("n_rows"),
+            "n_valid": summary.get("n_valid"),
+            "n_errors": summary.get("n_errors"),
+        }
+        dimension_means = summary.get("dimension_means") or {}
+        composite_means = summary.get("composite_means_0_100") or {}
+        for dim_id in dim_ids:
+            value = dimension_means.get(dim_id)
+            csv_row[f"mean_{dim_id}"] = "" if value is None else round(float(value), 6)
+        for name in composite_names:
+            value = composite_means.get(name)
+            csv_row[f"{name}_0_100"] = "" if value is None else round(float(value), 6)
+        csv_rows.append(csv_row)
+
     ensure_dir(output_dir)
     output = {
         "language": lang,
@@ -1361,7 +1530,13 @@ def summarize(args: argparse.Namespace) -> None:
     for lang in languages:
         combined[lang] = {}
         for judge_id in judge_ids:
-            combined[lang][judge_id] = summarize_judge_lang(work_dir, lang, judge_id, rubric)
+            combined[lang][judge_id] = summarize_judge_lang(
+                work_dir,
+                lang,
+                judge_id,
+                rubric,
+                merge_existing=args.merge_existing,
+            )
     write_json(work_dir / "metrics" / "llm_judge_summaries.json", combined)
 
 
@@ -1486,6 +1661,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("list-downloads")
     p.add_argument("--lang", choices=["all", "en", "zh"], default="all")
+    p.add_argument("--source-set", choices=sorted(SOURCE_CONFIG_SETS), default="all")
     p.add_argument("--include-human", action="store_true")
     p.set_defaults(func=list_downloads)
 
@@ -1493,8 +1669,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--raw-root", required=True)
     p.add_argument("--output-root", required=True)
     p.add_argument("--lang", choices=["all", "en", "zh"], default="all")
+    p.add_argument("--source-set", choices=sorted(SOURCE_CONFIG_SETS), default="all")
     p.add_argument("--human-en")
     p.add_argument("--human-zh")
+    p.add_argument(
+        "--merge-existing-manifest",
+        action="store_true",
+        help="Merge newly built source inputs into an existing manifest instead of replacing it.",
+    )
     p.add_argument(
         "--include-human-candidates",
         action="store_true",
@@ -1512,6 +1694,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--api-key")
     p.add_argument("--rubric-yaml", default=str(DEFAULT_RUBRIC_PATH))
     p.add_argument("--prompts-py", default=str(DEFAULT_PROMPTS_PATH))
+    p.add_argument(
+        "--include-source-id",
+        action="append",
+        default=[],
+        help="Limit judging to these source ids. Can be repeated or comma/space separated.",
+    )
+    p.add_argument(
+        "--exclude-source-id",
+        action="append",
+        default=[],
+        help="Skip these source ids. Can be repeated or comma/space separated.",
+    )
     p.add_argument("--sample-size", type=int, default=0)
     p.add_argument("--sample-mode", choices=["first", "random"], default="first")
     p.add_argument("--seed", type=int, default=42)
@@ -1552,6 +1746,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--lang", choices=["all", "en", "zh"], default="all")
     p.add_argument("--judge-id", default="all")
     p.add_argument("--rubric-yaml", default=str(DEFAULT_RUBRIC_PATH))
+    p.add_argument(
+        "--merge-existing",
+        action="store_true",
+        help="Preserve existing source summaries for sources not recomputed in this run.",
+    )
     p.set_defaults(func=summarize)
 
     p = sub.add_parser("combine-summaries")
