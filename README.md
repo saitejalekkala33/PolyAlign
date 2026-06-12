@@ -2,6 +2,10 @@
 
 PolyAlign is the code and artifact workspace for **"PolyAlign: Conditional Human-Distribution Alignment"**. The project studies post-training that preserves human response variation across language, task family, interaction track, and response length, instead of aligning every prompt to one generic assistant style.
 
+Paper: [arXiv:2606.13227](http://arxiv.org/abs/2606.13227)
+
+![PolyAlign overview: global alignment versus conditional human-distribution alignment.](README_assets/polyalign_intro.png)
+
 The repo contains:
 
 - a Python preprocessing package, `polyalign-data`, for normalizing English and Chinese corpora into a shared schema;
@@ -47,6 +51,8 @@ Bucket-SFT checkpoints, published with `dist-sft` names:
 ## Method At A Glance
 
 PolyAlign treats alignment as matching a **conditional human response distribution**. Each example is assigned metadata:
+
+![PolyAlign data and training pipeline.](README_assets/polyalign_pipeline.png)
 
 ```text
 language, track, family, style_bucket, length_bin, bucket_id
@@ -353,13 +359,15 @@ Normalized records use this schema:
 
 ## Citation
 
-No arXiv identifier is present in the local preprint PDF used for this README. Until an official BibTeX entry is released, cite the preprint title and authors:
+Until an official BibTeX entry is released, cite the preprint:
 
 ```bibtex
 @misc{polyalign2026,
   title = {PolyAlign: Conditional Human-Distribution Alignment},
   author = {L. D. M. S. Sai Teja and Ufaq Khan and Sathira Silva and Xiao Wu and Muhammad Haris Khan},
   year = {2026},
-  note = {Preprint}
+  eprint = {2606.13227},
+  archivePrefix = {arXiv},
+  url = {http://arxiv.org/abs/2606.13227}
 }
 ```
