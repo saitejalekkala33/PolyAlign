@@ -2,7 +2,7 @@
 
 PolyAlign is the code and artifact workspace for **"PolyAlign: Conditional Human-Distribution Alignment"**. The project studies post-training that preserves human response variation across language, task family, interaction track, and response length, instead of aligning every prompt to one generic assistant style.
 
-Paper: [arXiv:2606.13227](http://arxiv.org/abs/2606.13227)
+Paper: [arXiv:2606.13227](https://arxiv.org/abs/2606.13227)
 
 ![PolyAlign overview: global alignment versus conditional human-distribution alignment.](README_assets/polyalign_intro.png)
 
@@ -359,15 +359,16 @@ Normalized records use this schema:
 
 ## Citation
 
-Until an official BibTeX entry is released, cite the preprint:
+Cite the arXiv preprint:
 
 ```bibtex
-@misc{polyalign2026,
-  title = {PolyAlign: Conditional Human-Distribution Alignment},
-  author = {L. D. M. S. Sai Teja and Ufaq Khan and Sathira Silva and Xiao Wu and Muhammad Haris Khan},
-  year = {2026},
-  eprint = {2606.13227},
-  archivePrefix = {arXiv},
-  url = {http://arxiv.org/abs/2606.13227}
+@misc{teja2026polyalignconditionalhumandistributionalignment,
+      title={PolyAlign: Conditional Human-Distribution Alignment},
+      author={L. D. M. S. Sai Teja and Ufaq Khan and Sathira Silva and Xiao Wu and Muhammad Haris Khan},
+      year={2026},
+      eprint={2606.13227},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2606.13227},
 }
 ```
